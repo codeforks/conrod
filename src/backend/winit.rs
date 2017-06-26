@@ -7,6 +7,9 @@ use event::Input;
 use input;
 #[cfg(feature = "glium")] use glium;
 
+use backend::winit::winit::Touch;
+use winit::Touch as TouchEvent;
+
 
 /// Types that have access to a `winit::Window` and can provide the necessary dimensions and hidpi
 /// factor for converting `winit::Event`s to `conrod::event::Input`.
@@ -76,12 +79,14 @@ pub fn convert<W>(e: winit::Event, window: &W) -> Option<Input>
 
     match e {
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::Resized(w, h) => {
             let w = (w as Scalar / dpi_factor) as u32;
             let h = (h as Scalar / dpi_factor) as u32;
             Some(Input::Resize(w, h).into())
         },
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::ReceivedCharacter(ch) => {
             let string = match ch {
                 // Ignore control characters and return ascii for Text event (like sdl2).
@@ -94,16 +99,19 @@ pub fn convert<W>(e: winit::Event, window: &W) -> Option<Input>
             Some(Input::Text(string).into())
         },
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::Focused(focused) =>
             Some(Input::Focus(focused).into()),
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::KeyboardInput(winit::ElementState::Pressed, _, Some(key)) =>
             Some(Input::Press(input::Button::Keyboard(map_key(key))).into()),
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::KeyboardInput(winit::ElementState::Released, _, Some(key)) =>
             Some(Input::Release(input::Button::Keyboard(map_key(key))).into()),
 
-        winit::Event::Touch(winit::Touch { phase, location: (x, y), id }) => {
+        TouchEvent(Touch { phase, location: (x, y), id, device_id }) => {
             let phase = match phase {
                 winit::TouchPhase::Started => input::touch::Phase::Start,
                 winit::TouchPhase::Moved => input::touch::Phase::Move,
@@ -116,6 +124,7 @@ pub fn convert<W>(e: winit::Event, window: &W) -> Option<Input>
             Some(Input::Touch(touch).into())
         }
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::MouseMoved(x, y) => {
             let x = tx(x as Scalar);
             let y = ty(y as Scalar);
@@ -123,6 +132,7 @@ pub fn convert<W>(e: winit::Event, window: &W) -> Option<Input>
             Some(Input::Motion(motion).into())
         },
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::MouseWheel(winit::MouseScrollDelta::PixelDelta(x, y), _) => {
             let x = x as Scalar / dpi_factor;
             let y = -y as Scalar / dpi_factor;
@@ -130,6 +140,7 @@ pub fn convert<W>(e: winit::Event, window: &W) -> Option<Input>
             Some(Input::Motion(motion).into())
         },
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::MouseWheel(winit::MouseScrollDelta::LineDelta(x, y), _) => {
             // This should be configurable (we should provide a LineDelta event to allow for this).
             const ARBITRARY_POINTS_PER_LINE_FACTOR: Scalar = 10.0;
@@ -138,9 +149,11 @@ pub fn convert<W>(e: winit::Event, window: &W) -> Option<Input>
             Some(Input::Motion(input::Motion::Scroll { x: x, y: y }).into())
         },
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::MouseInput(winit::ElementState::Pressed, button) =>
             Some(Input::Press(input::Button::Mouse(map_mouse(button))).into()),
 
+        #[cfg(not(target_os = "android"))]
         winit::Event::MouseInput(winit::ElementState::Released, button) =>
             Some(Input::Release(input::Button::Mouse(map_mouse(button))).into()),
 

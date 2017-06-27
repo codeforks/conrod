@@ -64,8 +64,10 @@ pub struct Elements {
     matrix_id: widget::Id,
     elem_w: Scalar,
     elem_h: Scalar,
-    x_min: Scalar, x_max: Scalar,
-    y_min: Scalar, y_max: Scalar,
+    x_min: Scalar,
+    x_max: Scalar,
+    y_min: Scalar,
+    y_max: Scalar,
 }
 
 /// Data necessary for instantiating a widget for a single `Matrix` element.
@@ -91,7 +93,6 @@ pub struct Element {
 
 
 impl Matrix {
-
     /// Create a widget matrix context.
     pub fn new(cols: usize, rows: usize) -> Self {
         Matrix {
@@ -108,7 +109,6 @@ impl Matrix {
         self.style.cell_pad_h = Some(h);
         self
     }
-
 }
 
 
@@ -135,14 +135,23 @@ impl Widget for Matrix {
 
     /// Update the state of the Matrix.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, rect, style, ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            style,
+            ui,
+            ..
+        } = args;
         let Matrix { cols, rows, .. } = self;
 
         // First, check that we have the correct number of columns.
         let num_cols = state.indices.len();
         if num_cols < cols {
             state.update(|state| {
-                state.indices.extend((num_cols..cols).map(|_| Vec::with_capacity(rows)));
+                state.indices.extend((num_cols..cols).map(
+                    |_| Vec::with_capacity(rows),
+                ));
             });
         }
 
@@ -185,12 +194,10 @@ impl Widget for Matrix {
 
         elements
     }
-
 }
 
 
 impl Elements {
-
     /// Yield the next `Element`.
     pub fn next(&mut self, ui: &Ui) -> Option<Element> {
         let Elements {
@@ -201,19 +208,23 @@ impl Elements {
             matrix_id,
             elem_w,
             elem_h,
-            x_min, x_max,
-            y_min, y_max,
+            x_min,
+            x_max,
+            y_min,
+            y_max,
         } = *self;
 
         let (r, c) = (*row, *col);
 
         // Retrieve the `widget::Id` that was generated for the next `Element`.
-        let widget_id = match ui.widget_graph().widget(matrix_id)
+        let widget_id = match ui.widget_graph()
+            .widget(matrix_id)
             .and_then(|container| container.unique_widget_state::<Matrix>())
             .and_then(|&graph::UniqueWidgetState { ref state, .. }| {
-                state.indices.get(c).and_then(|col| col.get(r).map(|&id| id))
-            })
-        {
+                state.indices.get(c).and_then(
+                    |col| col.get(r).map(|&id| id),
+                )
+            }) {
             Some(id) => id,
             None => return None,
         };
@@ -239,12 +250,10 @@ impl Elements {
             rel_y: rel_y,
         })
     }
-
 }
 
 
 impl Element {
-
     /// Sets the given widget as the widget to use for the item.
     ///
     /// Sets the:
@@ -253,14 +262,22 @@ impl Element {
     /// - parent of the widget.
     /// - and finally sets the widget within the `Ui`.
     pub fn set<W>(self, widget: W, ui: &mut UiCell) -> W::Event
-        where W: Widget,
+    where
+        W: Widget,
     {
         use {Positionable, Sizeable};
-        let Element { widget_id, matrix_id, w, h, rel_x, rel_y, .. } = self;
+        let Element {
+            widget_id,
+            matrix_id,
+            w,
+            h,
+            rel_x,
+            rel_y,
+            ..
+        } = self;
         widget
             .w_h(w, h)
             .x_y_relative_to(matrix_id, rel_x, rel_y)
             .set(widget_id, ui)
     }
-
 }

@@ -35,7 +35,6 @@ pub struct State {
 }
 
 impl RoundedRectangle {
-
     /// Build a rounded rectangle with the given dimensions and style.
     pub fn styled(dim: Dimensions, radius: Scalar, style: Style) -> Self {
         RoundedRectangle {
@@ -62,7 +61,11 @@ impl RoundedRectangle {
     }
 
     /// Build an outlined rounded rectangle rather than a filled one.
-    pub fn outline_styled(dim: Dimensions, radius: Scalar, line_style: widget::line::Style) -> Self {
+    pub fn outline_styled(
+        dim: Dimensions,
+        radius: Scalar,
+        line_style: widget::line::Style,
+    ) -> Self {
         RoundedRectangle::styled(dim, radius, Style::outline_styled(line_style))
     }
 
@@ -71,7 +74,6 @@ impl RoundedRectangle {
         self.corner_resolution = res;
         self
     }
-
 }
 
 impl Widget for RoundedRectangle {
@@ -88,9 +90,7 @@ impl Widget for RoundedRectangle {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -99,8 +99,19 @@ impl Widget for RoundedRectangle {
 
     /// Update the state of the Rectangle.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, style, rect, ui, .. } = args;
-        let RoundedRectangle { radius, corner_resolution, .. } = self;
+        let widget::UpdateArgs {
+            id,
+            state,
+            style,
+            rect,
+            ui,
+            ..
+        } = args;
+        let RoundedRectangle {
+            radius,
+            corner_resolution,
+            ..
+        } = self;
 
         let (l, r, b, t) = rect.l_r_b_t();
         // The rectangle edges with the radius subtracted.
@@ -110,7 +121,7 @@ impl Widget for RoundedRectangle {
         let circle_resolution = corner_resolution * 4;
         let t = 2.0 * std::f64::consts::PI / circle_resolution as Scalar;
         fn f(r: Scalar, i: Scalar, t: Scalar) -> Point {
-            [r * (t*i).cos(), r * (t*i).sin()]
+            [r * (t * i).cos(), r * (t * i).sin()]
         }
 
         const NUM_CORNERS: usize = 4;
@@ -119,10 +130,14 @@ impl Widget for RoundedRectangle {
                 0 => (in_r, in_t, 0),
                 1 => (in_l, in_t, corner_resolution),
                 2 => (in_l, in_b, corner_resolution + corner_resolution),
-                3 => (in_r, in_b, corner_resolution + corner_resolution + corner_resolution),
+                3 => (
+                    in_r,
+                    in_b,
+                    corner_resolution + corner_resolution + corner_resolution,
+                ),
                 _ => unreachable!(),
             };
-            (0..corner_resolution+1).map(move |res| {
+            (0..corner_resolution + 1).map(move |res| {
                 let i = step + res;
                 let circle_offset = f(radius, i as f64, t);
                 [in_x + circle_offset[0], in_y + circle_offset[1]]
@@ -137,7 +152,6 @@ impl Widget for RoundedRectangle {
             .graphics_for(id)
             .set(state.ids.polygon, ui);
     }
-
 }
 
 impl Colorable for RoundedRectangle {

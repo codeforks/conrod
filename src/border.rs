@@ -13,7 +13,6 @@ pub enum Bordering {
 
 /// Widgets that may display a border.
 pub trait Borderable: Sized {
-
     /// Set the width of the widget's border.
     fn border(self, width: f64) -> Self;
 
@@ -39,6 +38,4 @@ pub trait Borderable: Sized {
     fn border_hsl(self, h: f32, s: f32, l: f32) -> Self {
         self.border_color(hsl(h, s, l))
     }
-
 }
-

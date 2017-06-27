@@ -5,12 +5,16 @@
 
 #![allow(unused_variables)]
 
-#[cfg(feature="winit")] #[macro_use] extern crate conrod;
-#[cfg(feature="winit")] extern crate glutin;
-#[macro_use] extern crate gfx;
+#[cfg(feature = "winit")]
+#[macro_use]
+extern crate conrod;
+#[cfg(feature = "winit")]
+extern crate glutin;
+#[macro_use]
+extern crate gfx;
 extern crate gfx_core;
 
-#[cfg(feature="winit")]
+#[cfg(feature = "winit")]
 mod support;
 
 
@@ -18,7 +22,7 @@ fn main() {
     feature::main();
 }
 
-#[cfg(feature="winit")]
+#[cfg(feature = "winit")]
 mod feature {
     extern crate gfx_window_glutin;
     extern crate find_folder;
@@ -103,23 +107,30 @@ mod feature {
     const CLEAR_COLOR: [f32; 4] = [0.2, 0.2, 0.2, 1.0];
 
     // Creates a gfx texture with the given data
-    fn create_texture<F, R>(factory: &mut F, width: u32, height: u32, data: &[u8])
-        -> (gfx::handle::Texture<R, SurfaceFormat>, gfx::handle::ShaderResourceView<R, [f32; 4]>)
-
-        where R: gfx::Resources, F: gfx::Factory<R>
+    fn create_texture<F, R>(
+        factory: &mut F,
+        width: u32,
+        height: u32,
+        data: &[u8],
+    ) -> (gfx::handle::Texture<R, SurfaceFormat>, gfx::handle::ShaderResourceView<R, [f32; 4]>)
+    where
+        R: gfx::Resources,
+        F: gfx::Factory<R>,
     {
         // Modified `Factory::create_texture_immutable_u8` for dynamic texture.
         fn create_texture<T, F, R>(
             factory: &mut F,
             kind: gfx::texture::Kind,
-            data: &[&[u8]]
-        ) -> Result<(
-            gfx::handle::Texture<R, T::Surface>,
-            gfx::handle::ShaderResourceView<R, T::View>
-        ), gfx::CombinedError>
-            where F: gfx::Factory<R>,
-                  R: gfx::Resources,
-                  T: gfx::format::TextureFormat
+            data: &[&[u8]],
+        ) -> Result<
+            (gfx::handle::Texture<R, T::Surface>,
+             gfx::handle::ShaderResourceView<R, T::View>),
+            gfx::CombinedError,
+        >
+        where
+            F: gfx::Factory<R>,
+            R: gfx::Resources,
+            T: gfx::format::TextureFormat,
         {
             use gfx::{format, texture};
             use gfx::memory::{Usage, SHADER_RESOURCE};
@@ -127,7 +138,7 @@ mod feature {
 
             let surface = <T::Surface as format::SurfaceTyped>::get_surface_type();
             let num_slices = kind.get_num_slices().unwrap_or(1) as usize;
-            let num_faces = if kind.is_cube() {6} else {1};
+            let num_faces = if kind.is_cube() { 6 } else { 1 };
             let desc = texture::Info {
                 kind: kind,
                 levels: (data.len() / (num_slices * num_faces)) as texture::Level,
@@ -140,7 +151,9 @@ mod feature {
             let levels = (0, raw.get_info().levels - 1);
             let tex = Typed::new(raw);
             let view = try!(factory.view_texture_as_shader_resource::<T>(
-                &tex, levels, format::Swizzle::new()
+                &tex,
+                levels,
+                format::Swizzle::new(),
             ));
             Ok((tex, view))
         }
@@ -148,32 +161,36 @@ mod feature {
         let kind = texture::Kind::D2(
             width as texture::Size,
             height as texture::Size,
-            texture::AaMode::Single
+            texture::AaMode::Single,
         );
         create_texture::<ColorFormat, F, R>(factory, kind, &[data]).unwrap()
     }
 
     // Updates a texture with the given data (used for updating the GlyphCache texture)
-    fn update_texture<R, C>(encoder: &mut gfx::Encoder<R, C>,
-                            texture: &gfx::handle::Texture<R, SurfaceFormat>,
-                            offset: [u16; 2],
-                            size: [u16; 2],
-                            data: &[[u8; 4]])
-
-        where R: gfx::Resources, C: gfx::CommandBuffer<R>
+    fn update_texture<R, C>(
+        encoder: &mut gfx::Encoder<R, C>,
+        texture: &gfx::handle::Texture<R, SurfaceFormat>,
+        offset: [u16; 2],
+        size: [u16; 2],
+        data: &[[u8; 4]],
+    ) where
+        R: gfx::Resources,
+        C: gfx::CommandBuffer<R>,
     {
         let info = texture::ImageInfoCommon {
-                xoffset: offset[0],
-                yoffset: offset[1],
-                zoffset: 0,
-                width: size[0],
-                height: size[1],
-                depth: 0,
-                format: (),
-                mipmap: 0,
+            xoffset: offset[0],
+            yoffset: offset[1],
+            zoffset: 0,
+            width: size[0],
+            height: size[1],
+            depth: 0,
+            format: (),
+            mipmap: 0,
         };
 
-        encoder.update_texture::<SurfaceFormat, FullFormat>(texture, None, info, data).unwrap();
+        encoder
+            .update_texture::<SurfaceFormat, FullFormat>(texture, None, info, data)
+            .unwrap();
     }
 
     pub fn main() {
@@ -189,10 +206,8 @@ mod feature {
 
 
         // Create texture sampler
-        let sampler_info = texture::SamplerInfo::new(
-            texture::FilterMethod::Bilinear,
-            texture::WrapMode::Clamp
-        );
+        let sampler_info =
+            texture::SamplerInfo::new(texture::FilterMethod::Bilinear, texture::WrapMode::Clamp);
         let sampler = factory.create_sampler(sampler_info);
 
         // Dummy values for initialization
@@ -206,14 +221,20 @@ mod feature {
         };
 
         // Compile GL program
-        let pso = factory.create_pipeline_simple(VERTEX_SHADER, FRAGMENT_SHADER, pipe::new()).unwrap();
+        let pso = factory
+            .create_pipeline_simple(VERTEX_SHADER, FRAGMENT_SHADER, pipe::new())
+            .unwrap();
 
         // Create Ui and Ids of widgets to instantiate
-        let mut ui = conrod::UiBuilder::new([WIN_W as f64, WIN_H as f64]).theme(support::theme()).build();
+        let mut ui = conrod::UiBuilder::new([WIN_W as f64, WIN_H as f64])
+            .theme(support::theme())
+            .build();
         let ids = support::Ids::new(ui.widget_id_generator());
 
         // Load font from file
-        let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+            .for_folder("assets")
+            .unwrap();
         let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
         ui.fonts.insert_from_file(font_path).unwrap();
 
@@ -226,9 +247,8 @@ mod feature {
             const SCALE_TOLERANCE: f32 = 0.1;
             const POSITION_TOLERANCE: f32 = 0.1;
 
-            let cache = conrod::text::GlyphCache::new(width, height,
-                                                      SCALE_TOLERANCE,
-                                                      POSITION_TOLERANCE);
+            let cache =
+                conrod::text::GlyphCache::new(width, height, SCALE_TOLERANCE, POSITION_TOLERANCE);
 
             let data = vec![0; (width * height * 4) as usize];
 
@@ -260,21 +280,37 @@ mod feature {
             let dpi_factor = window.hidpi_factor();
 
             if let Some(mut primitives) = ui.draw_if_changed() {
-                let (screen_width, screen_height) = (win_w as f32 * dpi_factor, win_h as f32 * dpi_factor);
+                let (screen_width, screen_height) =
+                    (win_w as f32 * dpi_factor, win_h as f32 * dpi_factor);
                 let mut vertices = Vec::new();
 
                 // Create vertices
-                while let Some(render::Primitive { id, kind, scizzor, rect }) = primitives.next() {
+                while let Some(render::Primitive {
+                                   id,
+                                   kind,
+                                   scizzor,
+                                   rect,
+                               }) = primitives.next()
+                {
                     match kind {
-                        render::PrimitiveKind::Rectangle { color } => {
-                        },
-                        render::PrimitiveKind::Polygon { color, points } => {
-                        },
-                        render::PrimitiveKind::Lines { color, cap, thickness, points } => {
-                        },
-                        render::PrimitiveKind::Image { image_id, color, source_rect } => {
-                        },
-                        render::PrimitiveKind::Text { color, text, font_id } => {
+                        render::PrimitiveKind::Rectangle { color } => {}
+                        render::PrimitiveKind::Polygon { color, points } => {}
+                        render::PrimitiveKind::Lines {
+                            color,
+                            cap,
+                            thickness,
+                            points,
+                        } => {}
+                        render::PrimitiveKind::Image {
+                            image_id,
+                            color,
+                            source_rect,
+                        } => {}
+                        render::PrimitiveKind::Text {
+                            color,
+                            text,
+                            font_id,
+                        } => {
                             let positioned_glyphs = text.positioned_glyphs(dpi_factor);
 
                             // Queue the glyphs to be cached
@@ -282,49 +318,84 @@ mod feature {
                                 glyph_cache.queue_glyph(font_id.index(), glyph.clone());
                             }
 
-                            glyph_cache.cache_queued(|rect, data| {
-                                let offset = [rect.min.x as u16, rect.min.y as u16];
-                                let size = [rect.width() as u16, rect.height() as u16];
+                            glyph_cache
+                                .cache_queued(|rect, data| {
+                                    let offset = [rect.min.x as u16, rect.min.y as u16];
+                                    let size = [rect.width() as u16, rect.height() as u16];
 
-                                let new_data = data.iter().map(|x| [0, 0, 0, *x]).collect::<Vec<_>>();
+                                    let new_data =
+                                        data.iter().map(|x| [0, 0, 0, *x]).collect::<Vec<_>>();
 
-                                update_texture(&mut encoder, &cache_tex, offset, size, &new_data);
-                            }).unwrap();
+                                    update_texture(
+                                        &mut encoder,
+                                        &cache_tex,
+                                        offset,
+                                        size,
+                                        &new_data,
+                                    );
+                                })
+                                .unwrap();
 
                             let color = color.to_fsa();
                             let cache_id = font_id.index();
                             let origin = rt::point(0.0, 0.0);
 
                             // A closure to convert RustType rects to GL rects
-                            let to_gl_rect = |screen_rect: rt::Rect<i32>| rt::Rect {
-                                min: origin
-                                    + (rt::vector(screen_rect.min.x as f32 / screen_width - 0.5,
-                                                  1.0 - screen_rect.min.y as f32 / screen_height - 0.5)) * 2.0,
-                                max: origin
-                                    + (rt::vector(screen_rect.max.x as f32 / screen_width - 0.5,
-                                                  1.0 - screen_rect.max.y as f32 / screen_height - 0.5)) * 2.0,
+                            let to_gl_rect = |screen_rect: rt::Rect<i32>| {
+                                rt::Rect {
+                                    min: origin +
+                                        (rt::vector(
+                                            screen_rect.min.x as f32 / screen_width - 0.5,
+                                            1.0 - screen_rect.min.y as f32 / screen_height - 0.5,
+                                        )) * 2.0,
+                                    max: origin +
+                                        (rt::vector(
+                                            screen_rect.max.x as f32 / screen_width - 0.5,
+                                            1.0 - screen_rect.max.y as f32 / screen_height - 0.5,
+                                        )) * 2.0,
+                                }
                             };
 
                             // Create new vertices
-                            let extension = positioned_glyphs.into_iter()
-                                .filter_map(|g| glyph_cache.rect_for(cache_id, g).ok().unwrap_or(None))
+                            let extension = positioned_glyphs
+                                .into_iter()
+                                .filter_map(
+                                    |g| glyph_cache.rect_for(cache_id, g).ok().unwrap_or(None),
+                                )
                                 .flat_map(|(uv_rect, screen_rect)| {
                                     use std::iter::once;
 
                                     let gl_rect = to_gl_rect(screen_rect);
                                     let v = |pos, uv| once(Vertex::new(pos, uv, color));
 
-                                    v([gl_rect.min.x, gl_rect.max.y], [uv_rect.min.x, uv_rect.max.y])
-                                        .chain(v([gl_rect.min.x, gl_rect.min.y], [uv_rect.min.x, uv_rect.min.y]))
-                                        .chain(v([gl_rect.max.x, gl_rect.min.y], [uv_rect.max.x, uv_rect.min.y]))
-                                        .chain(v([gl_rect.max.x, gl_rect.min.y], [uv_rect.max.x, uv_rect.min.y]))
-                                        .chain(v([gl_rect.max.x, gl_rect.max.y], [uv_rect.max.x, uv_rect.max.y]))
-                                        .chain(v([gl_rect.min.x, gl_rect.max.y], [uv_rect.min.x, uv_rect.max.y]))
+                                    v(
+                                        [gl_rect.min.x, gl_rect.max.y],
+                                        [uv_rect.min.x, uv_rect.max.y],
+                                    ).chain(v(
+                                        [gl_rect.min.x, gl_rect.min.y],
+                                        [uv_rect.min.x, uv_rect.min.y],
+                                    ))
+                                        .chain(v(
+                                            [gl_rect.max.x, gl_rect.min.y],
+                                            [uv_rect.max.x, uv_rect.min.y],
+                                        ))
+                                        .chain(v(
+                                            [gl_rect.max.x, gl_rect.min.y],
+                                            [uv_rect.max.x, uv_rect.min.y],
+                                        ))
+                                        .chain(v(
+                                            [gl_rect.max.x, gl_rect.max.y],
+                                            [uv_rect.max.x, uv_rect.max.y],
+                                        ))
+                                        .chain(v(
+                                            [gl_rect.min.x, gl_rect.max.y],
+                                            [uv_rect.min.x, uv_rect.max.y],
+                                        ))
                                 });
 
                             vertices.extend(extension);
-                        },
-                        render::PrimitiveKind::Other(_) => {},
+                        }
+                        render::PrimitiveKind::Other(_) => {}
                     }
                 }
 
@@ -348,17 +419,20 @@ mod feature {
                 let dpi_factor = dpi_factor as conrod::Scalar;
 
                 // Convert winit event to conrod event, requires conrod to be built with the `winit` feature
-                if let Some(event) = conrod::backend::winit::convert(event.clone(), window.as_winit_window()) {
+                if let Some(event) = conrod::backend::winit::convert(
+                    event.clone(),
+                    window.as_winit_window(),
+                )
+                {
                     ui.handle_event(event);
                 }
 
                 // Close window if the escape key or the exit button is pressed
                 match event {
                     glutin::Event::KeyboardInput(_, _, Some(glutin::VirtualKeyCode::Escape)) |
-                    glutin::Event::Closed =>
-                        break 'main,
+                    glutin::Event::Closed => break 'main,
 
-                    _ => {},
+                    _ => {}
                 }
             }
 
@@ -371,10 +445,12 @@ mod feature {
     }
 }
 
-#[cfg(not(feature="winit"))]
+#[cfg(not(feature = "winit"))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` feature. \
-                 Try running `cargo run --release --no-default-features --features=\"winit\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` feature. \
+                 Try running `cargo run --release --no-default-features --features=\"winit\" --example <example_name>`"
+        );
     }
 }

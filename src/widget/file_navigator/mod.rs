@@ -6,16 +6,7 @@
 //! of one or more files, de-selection, deletion and double-clicking.
 //! - `FileView`: Displays some basic information about the file.
 
-use {
-    color,
-    Color,
-    Colorable,
-    FontSize,
-    Positionable,
-    Scalar,
-    Sizeable,
-    Widget,
-};
+use {color, Color, Colorable, FontSize, Positionable, Scalar, Sizeable, Widget};
 use event;
 use std;
 use widget;
@@ -124,7 +115,6 @@ pub enum Event {
 }
 
 impl<'a> FileNavigator<'a> {
-
     /// Begin building a `FileNavigator` widget that displays only files of the given types.
     pub fn new(starting_directory: &'a std::path::Path, types: Types<'a>) -> Self {
         FileNavigator {
@@ -171,7 +161,6 @@ impl<'a> FileNavigator<'a> {
     builder_methods!{
         pub font_size { style.font_size = Some(FontSize) }
     }
-
 }
 
 
@@ -202,8 +191,19 @@ impl<'a> Widget for FileNavigator<'a> {
 
     /// Update the state of the Button.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, style, rect, mut ui, .. } = args;
-        let FileNavigator { starting_directory, types, .. } = self;
+        let widget::UpdateArgs {
+            id,
+            state,
+            style,
+            rect,
+            mut ui,
+            ..
+        } = args;
+        let FileNavigator {
+            starting_directory,
+            types,
+            ..
+        } = self;
 
         if starting_directory != state.starting_directory {
             state.update(|state| {
@@ -211,16 +211,21 @@ impl<'a> Widget for FileNavigator<'a> {
                 let path = starting_directory.to_path_buf();
                 state.starting_directory = path.clone();
                 state.directory_stack.clear();
-                let dir = Directory { path: path, column_width: width };
+                let dir = Directory {
+                    path: path,
+                    column_width: width,
+                };
                 state.directory_stack.push(dir);
             });
         }
 
         let color = style.color(&ui.theme);
-        let unselected_color = style.unselected_color(&ui.theme)
-            .unwrap_or_else(|| color.plain_contrast().plain_contrast());
-        let text_color = style.text_color(&ui.theme)
-            .unwrap_or_else(|| color.plain_contrast());
+        let unselected_color = style.unselected_color(&ui.theme).unwrap_or_else(|| {
+            color.plain_contrast().plain_contrast()
+        });
+        let text_color = style.text_color(&ui.theme).unwrap_or_else(
+            || color.plain_contrast(),
+        );
 
         widget::Rectangle::fill(rect.dim())
             .xy(rect.xy())
@@ -247,9 +252,9 @@ impl<'a> Widget for FileNavigator<'a> {
                 Some(&id) => id,
                 None => {
                     let id_gen = &mut ui.widget_id_generator();
-                    state.update(|state| state.ids.directory_views.resize(i+1, id_gen));
+                    state.update(|state| state.ids.directory_views.resize(i + 1, id_gen));
                     state.ids.directory_views[i]
-                },
+                }
             };
 
             // Retrieve the directory view resizing bar `widget::Id`.
@@ -257,9 +262,11 @@ impl<'a> Widget for FileNavigator<'a> {
                 Some(&id) => id,
                 None => {
                     let id_gen = &mut ui.widget_id_generator();
-                    state.update(|state| state.ids.directory_view_resizers.resize(i+1, id_gen));
+                    state.update(|state| {
+                        state.ids.directory_view_resizers.resize(i + 1, id_gen)
+                    });
                     state.ids.directory_view_resizers[i]
-                },
+                }
             };
 
             let resize_handle_width = style.resize_handle_width(&ui.theme);
@@ -285,7 +292,10 @@ impl<'a> Widget for FileNavigator<'a> {
             }
 
             // Instantiate the `DirectoryView` widget and check for events.
-            enum Action { EnterDir(std::path::PathBuf), ExitDir }
+            enum Action {
+                EnterDir(std::path::PathBuf),
+                ExitDir,
+            }
 
             let mut maybe_action = None;
 
@@ -294,7 +304,11 @@ impl<'a> Widget for FileNavigator<'a> {
             for event in DirectoryView::new(&state.directory_stack[i].path, types)
                 .h(rect.h())
                 .w(directory_view_width)
-                .and(|view| if i == 0 { view.mid_left_of(id) } else { view.right(0.0) })
+                .and(|view| if i == 0 {
+                    view.mid_left_of(id)
+                } else {
+                    view.right(0.0)
+                })
                 .color(color)
                 .unselected_color(unselected_color)
                 .text_color(text_color)
@@ -320,36 +334,39 @@ impl<'a> Widget for FileNavigator<'a> {
                         }
                         let event = Event::ChangeSelection(paths);
                         events.push(event);
-                    },
+                    }
 
                     // Propagate interactions.
-                    directory_view::Event::Click(e, paths) =>
-                        events.push(Event::Click(e, paths)),
-                    directory_view::Event::DoubleClick(e, paths) =>
-                        events.push(Event::DoubleClick(e, paths)),
-                    directory_view::Event::Release(e, paths) =>
-                        events.push(Event::Release(e, paths)),
+                    directory_view::Event::Click(e, paths) => events.push(Event::Click(e, paths)),
+                    directory_view::Event::DoubleClick(e, paths) => {
+                        events.push(Event::DoubleClick(e, paths))
+                    }
+                    directory_view::Event::Release(e, paths) => {
+                        events.push(Event::Release(e, paths))
+                    }
 
                     // Check for directory navigation.
                     directory_view::Event::Press(press, paths) => {
                         if let Some(key_press) = press.key() {
                             use input;
                             match key_press.key {
-                                input::Key::Right => if paths.len() == 1 {
-                                    if paths[0].is_dir() {
-                                        // TODO: Select top child of this dir and give keyboard
-                                        // capturing to newly selected child.
+                                input::Key::Right => {
+                                    if paths.len() == 1 {
+                                        if paths[0].is_dir() {
+                                            // TODO: Select top child of this dir and give keyboard
+                                            // capturing to newly selected child.
+                                        }
                                     }
-                                },
+                                }
                                 input::Key::Left => {
                                     // TODO: Exit top dir, enter parent dir and ensure no children
                                     // are selected.
-                                },
+                                }
                                 _ => (),
                             }
                         }
                         events.push(Event::Press(press, paths));
-                    },
+                    }
 
                 }
             }
@@ -364,7 +381,10 @@ impl<'a> Widget for FileNavigator<'a> {
                         for _ in 0..num_to_remove {
                             state.directory_stack.pop();
                         }
-                        let dir = Directory { path: path.clone(), column_width: column_width };
+                        let dir = Directory {
+                            path: path.clone(),
+                            column_width: column_width,
+                        };
                         state.directory_stack.push(dir);
 
                         let event = Event::ChangeDirectory(path);
@@ -374,19 +394,22 @@ impl<'a> Widget for FileNavigator<'a> {
                     // If the resulting total width of all `DirectoryView`s would exceed the
                     // width of the `FileNavigator` itself, scroll toward the top-most
                     // `DirectoryView`.
-                    let total_w = state.directory_stack.iter().fold(0.0, |t, d| t + d.column_width);
+                    let total_w = state.directory_stack.iter().fold(
+                        0.0,
+                        |t, d| t + d.column_width,
+                    );
                     let overlap = total_w - rect.w();
                     if overlap > 0.0 {
                         ui.scroll_widget(state.ids.scrollable_canvas, [-overlap, 0.0]);
                     }
-                },
+                }
 
                 Some(Action::ExitDir) => {
                     let num_to_remove = state.directory_stack.len() - 1 - i;
                     for _ in 0..num_to_remove {
                         state.update(|state| { state.directory_stack.pop(); });
                     }
-                },
+                }
 
                 None => (),
             }
@@ -394,10 +417,12 @@ impl<'a> Widget for FileNavigator<'a> {
             // Instantiate the width-resizing handle's `Rectangle`.
             let resize_color = color.plain_contrast().plain_contrast();
             let resize_color = match ui.widget_input(resize_id).mouse() {
-                Some(mouse) => match mouse.buttons.left().is_down() {
-                    true => resize_color.clicked().alpha(0.5),
-                    false => resize_color.highlighted().alpha(0.2),
-                },
+                Some(mouse) => {
+                    match mouse.buttons.left().is_down() {
+                        true => resize_color.clicked().alpha(0.5),
+                        false => resize_color.highlighted().alpha(0.2),
+                    }
+                }
                 None => resize_color.alpha(0.2),
             };
             widget::Rectangle::fill([resize_handle_width, rect.h()])
@@ -410,7 +435,13 @@ impl<'a> Widget for FileNavigator<'a> {
         }
 
         // If the canvas is pressed.
-        if ui.widget_input(state.ids.scrollable_canvas).presses().mouse().left().next().is_some() {
+        if ui.widget_input(state.ids.scrollable_canvas)
+            .presses()
+            .mouse()
+            .left()
+            .next()
+            .is_some()
+        {
             state.update(|state| {
                 // Unselect everything.
                 while state.directory_stack.len() > 1 {
@@ -422,7 +453,6 @@ impl<'a> Widget for FileNavigator<'a> {
 
         events
     }
-
 }
 
 impl<'a> Colorable for FileNavigator<'a> {

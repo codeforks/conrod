@@ -93,7 +93,6 @@ impl<T> Iterator for Event<T> {
 
 
 impl<'a, T> RangeSlider<'a, T> {
-
     /// Construct a new RangeSlider widget.
     pub fn new(start: T, end: T, min: T, max: T) -> Self {
         RangeSlider {
@@ -112,11 +111,11 @@ impl<'a, T> RangeSlider<'a, T> {
         self.style.label_font_id = Some(Some(font_id));
         self
     }
-
 }
 
 impl<'a, T> Widget for RangeSlider<'a, T>
-    where T: Float + NumCast + ToPrimitive,
+where
+    T: Float + NumCast + ToPrimitive,
 {
     type State = State;
     type Style = Style;
@@ -154,8 +153,22 @@ impl<'a, T> Widget for RangeSlider<'a, T>
 
     /// Update the state of the Slider.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, rect, style, mut ui, .. } = args;
-        let RangeSlider { start, end, min, max, maybe_label, .. } = self;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            style,
+            mut ui,
+            ..
+        } = args;
+        let RangeSlider {
+            start,
+            end,
+            min,
+            max,
+            maybe_label,
+            ..
+        } = self;
 
         let border = style.border(ui.theme());
         let inner_rect = rect.pad(border);
@@ -187,7 +200,10 @@ impl<'a, T> Widget for RangeSlider<'a, T>
                         let end_x = value_to_x(new_end);
                         let length_x = end_x - start_x;
                         let grab_edge_threshold = length_x / 10.0;
-                        let handle_rect = Rect { x: Range::new(start_x, end_x), y: inner_rect.y };
+                        let handle_rect = Rect {
+                            x: Range::new(start_x, end_x),
+                            y: inner_rect.y,
+                        };
                         if handle_rect.is_over(abs_press_xy) {
                             let distance_from_start = (abs_press_xy[0] - start_x).abs();
                             if distance_from_start < grab_edge_threshold {
@@ -214,19 +230,20 @@ impl<'a, T> Widget for RangeSlider<'a, T>
                             }
                         }
                     }
-                },
+                }
 
                 /// Drags either the Start, End or the whole Bar depending on where it was pressed.
-                event::Widget::Drag(drag_event) if drag_event.button == input::MouseButton::Left => {
+                event::Widget::Drag(drag_event)
+                    if drag_event.button == input::MouseButton::Left => {
                     match maybe_drag {
                         Some(Drag::Edge(Edge::Start)) => {
                             let abs_drag_to = inner_rect.x() + drag_event.to[0];
                             new_start = utils::clamp(x_to_value(abs_drag_to), min, new_end);
-                        },
+                        }
                         Some(Drag::Edge(Edge::End)) => {
                             let abs_drag_to = inner_rect.x() + drag_event.to[0];
                             new_end = utils::clamp(x_to_value(abs_drag_to), new_start, max);
-                        },
+                        }
                         Some(Drag::Handle) => {
                             let drag_amt = drag_event.delta_xy[0];
                             let end_x = value_to_x(new_end);
@@ -240,22 +257,23 @@ impl<'a, T> Widget for RangeSlider<'a, T>
                                 new_end = x_to_value(dragged_end);
                             } else {
                                 let min_x = inner_rect.left();
-                                let dragged_start = utils::clamp(start_x + drag_amt, min_x, start_x);
+                                let dragged_start =
+                                    utils::clamp(start_x + drag_amt, min_x, start_x);
                                 let distance_dragged = dragged_start - start_x;
                                 let dragged_end = end_x + distance_dragged;
                                 new_start = x_to_value(dragged_start);
                                 new_end = x_to_value(dragged_end);
                             }
-                        },
+                        }
                         None => (),
                     }
-                },
+                }
 
                 event::Widget::Release(release) => {
                     if let event::Button::Mouse(input::MouseButton::Left, _) = release.button {
                         maybe_drag = None;
                     }
-                },
+                }
 
                 _ => (),
             }
@@ -265,7 +283,11 @@ impl<'a, T> Widget for RangeSlider<'a, T>
         // If the value has just changed, or if the slider has been clicked/released, produce an
         // event.
         let event = Event {
-            start: if start != new_start { Some(new_start) } else { None },
+            start: if start != new_start {
+                Some(new_start)
+            } else {
+                None
+            },
             end: if end != new_end { Some(new_end) } else { None },
         };
 
@@ -274,14 +296,16 @@ impl<'a, T> Widget for RangeSlider<'a, T>
         }
 
         // The **Rectangle** for the border.
-        let interaction_color = |ui: &::ui::UiCell, color: Color|
-            ui.widget_input(id).mouse()
+        let interaction_color = |ui: &::ui::UiCell, color: Color| {
+            ui.widget_input(id)
+                .mouse()
                 .map(|mouse| if mouse.buttons.left().is_down() {
                     color.clicked()
                 } else {
                     color.highlighted()
                 })
-                .unwrap_or(color);
+                .unwrap_or(color)
+        };
 
         let border_color = interaction_color(&ui, style.border_color(ui.theme()));
         widget::Rectangle::fill(rect.dim())
@@ -293,7 +317,10 @@ impl<'a, T> Widget for RangeSlider<'a, T>
         // The **Rectangle** for the adjustable slider.
         let start_x = value_to_x(new_start);
         let end_x = value_to_x(new_end);
-        let slider_rect = Rect { x: Range::new(start_x, end_x), y: inner_rect.y };
+        let slider_rect = Rect {
+            x: Range::new(start_x, end_x),
+            y: inner_rect.y,
+        };
         let color = interaction_color(&ui, style.color(ui.theme()));
         let slider_xy_offset = [slider_rect.x() - rect.x(), slider_rect.y() - rect.y()];
         widget::Rectangle::fill(slider_rect.dim())
@@ -320,7 +347,6 @@ impl<'a, T> Widget for RangeSlider<'a, T>
 
         event
     }
-
 }
 
 

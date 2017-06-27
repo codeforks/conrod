@@ -73,7 +73,6 @@ pub struct State {
 
 
 impl<'a> Text<'a> {
-
     /// Build a new **Text** widget.
     pub fn new(text: &'a str) -> Self {
         Text {
@@ -103,7 +102,7 @@ impl<'a> Text<'a> {
 
     /// A method for specifying the `Font` used for displaying the `Text`.
     pub fn font_id(mut self, font_id: text::font::Id) -> Self {
-        self.style.font_id =  Some(Some(font_id));
+        self.style.font_id = Some(Some(font_id));
         self
     }
 
@@ -133,7 +132,6 @@ impl<'a> Text<'a> {
         pub justify { style.justify = Some(text::Justify) }
         pub line_spacing { style.line_spacing = Some(Scalar) }
     }
-
 }
 
 
@@ -166,10 +164,10 @@ impl<'a> Widget for Text<'a> {
     /// The `Font` used by the `Text` is retrieved in order to determine the width of each line. If
     /// the font used by the `Text` cannot be found, a dimension of `Absolute(0.0)` is returned.
     fn default_x_dimension(&self, ui: &Ui) -> Dimension {
-        let font = match self.style.font_id(&ui.theme)
+        let font = match self.style
+            .font_id(&ui.theme)
             .or(ui.fonts.ids().next())
-            .and_then(|id| ui.fonts.get(id))
-        {
+            .and_then(|id| ui.fonts.get(id)) {
             Some(font) => font,
             None => return Dimension::Absolute(0.0),
         };
@@ -190,10 +188,10 @@ impl<'a> Widget for Text<'a> {
     fn default_y_dimension(&self, ui: &Ui) -> Dimension {
         use position::Sizeable;
 
-        let font = match self.style.font_id(&ui.theme)
+        let font = match self.style
+            .font_id(&ui.theme)
             .or(ui.fonts.ids().next())
-            .and_then(|id| ui.fonts.get(id))
-        {
+            .and_then(|id| ui.fonts.get(id)) {
             Some(font) => font,
             None => return Dimension::Absolute(0.0),
         };
@@ -202,19 +200,25 @@ impl<'a> Widget for Text<'a> {
         let font_size = self.style.font_size(&ui.theme);
         let num_lines = match self.style.maybe_wrap(&ui.theme) {
             None => text.lines().count(),
-            Some(wrap) => match self.get_w(ui) {
-                None => text.lines().count(),
-                Some(max_w) => match wrap {
-                    Wrap::Character =>
-                        text::line::infos(text, font, font_size)
-                            .wrap_by_character(max_w)
-                            .count(),
-                    Wrap::Whitespace =>
-                        text::line::infos(text, font, font_size)
-                            .wrap_by_whitespace(max_w)
-                            .count(),
-                },
-            },
+            Some(wrap) => {
+                match self.get_w(ui) {
+                    None => text.lines().count(),
+                    Some(max_w) => {
+                        match wrap {
+                            Wrap::Character => {
+                                text::line::infos(text, font, font_size)
+                                    .wrap_by_character(max_w)
+                                    .count()
+                            }
+                            Wrap::Whitespace => {
+                                text::line::infos(text, font, font_size)
+                                    .wrap_by_whitespace(max_w)
+                                    .count()
+                            }
+                        }
+                    }
+                }
+            }
         };
         let line_spacing = self.style.line_spacing(&ui.theme);
         let height = text::height(std::cmp::max(num_lines, 1), font_size, line_spacing);
@@ -223,28 +227,35 @@ impl<'a> Widget for Text<'a> {
 
     /// Update the state of the Text.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { rect, state, style, ui, .. } = args;
+        let widget::UpdateArgs {
+            rect,
+            state,
+            style,
+            ui,
+            ..
+        } = args;
         let Text { text, .. } = self;
 
         let maybe_wrap = style.maybe_wrap(ui.theme());
         let font_size = style.font_size(ui.theme());
 
-        let font = match style.font_id(&ui.theme)
+        let font = match style
+            .font_id(&ui.theme)
             .or(ui.fonts.ids().next())
-            .and_then(|id| ui.fonts.get(id))
-        {
+            .and_then(|id| ui.fonts.get(id)) {
             Some(font) => font,
             None => return,
         };
 
         // Produces an iterator yielding info for each line within the `text`.
         let new_line_infos = || match maybe_wrap {
-            None =>
-                text::line::infos(text, font, font_size),
-            Some(Wrap::Character) =>
-                text::line::infos(text, font, font_size).wrap_by_character(rect.w()),
-            Some(Wrap::Whitespace) =>
-                text::line::infos(text, font, font_size).wrap_by_whitespace(rect.w()),
+            None => text::line::infos(text, font, font_size),
+            Some(Wrap::Character) => {
+                text::line::infos(text, font, font_size).wrap_by_character(rect.w())
+            }
+            Some(Wrap::Whitespace) => {
+                text::line::infos(text, font, font_size).wrap_by_whitespace(rect.w())
+            }
         };
 
         // If the string is different, we must update both the string and the line breaks.
@@ -273,7 +284,6 @@ impl<'a> Widget for Text<'a> {
             }
         }
     }
-
 }
 
 impl<'a> Colorable for Text<'a> {

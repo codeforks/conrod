@@ -58,7 +58,8 @@ pub fn height(num_lines: usize, font_size: FontSize, line_spacing: Scalar) -> Sc
 /// Produce an iterator yielding each line within the given `text` as a new `&str`, where the
 /// start and end indices into each line are provided by the given iterator.
 pub fn lines<I>(text: &str, ranges: I) -> Lines<I>
-    where I: Iterator<Item=std::ops::Range<usize>>,
+where
+    I: Iterator<Item = std::ops::Range<usize>>,
 {
     Lines {
         text: text,
@@ -79,11 +80,15 @@ pub fn pt_to_scale(font_size_in_points: FontSize) -> Scale {
 
 
 impl<'a, I> Iterator for Lines<'a, I>
-    where I: Iterator<Item=std::ops::Range<usize>>,
+where
+    I: Iterator<Item = std::ops::Range<usize>>,
 {
     type Item = &'a str;
     fn next(&mut self) -> Option<Self::Item> {
-        let Lines { text, ref mut ranges } = *self;
+        let Lines {
+            text,
+            ref mut ranges,
+        } = *self;
         ranges.next().map(|range| &text[range])
     }
 }
@@ -131,16 +136,13 @@ pub mod font {
     }
 
     impl Id {
-
         /// Returns the inner `usize` from the `Id`.
         pub fn index(self) -> usize {
             self.0
         }
-
     }
 
     impl Map {
-
         /// Construct the new, empty `Map`.
         pub fn new() -> Self {
             Map {
@@ -165,7 +167,8 @@ pub mod font {
 
         /// Insert a single `Font` into the map by loading it from the given file path.
         pub fn insert_from_file<P>(&mut self, path: P) -> Result<Id, Error>
-            where P: AsRef<std::path::Path>,
+        where
+            P: AsRef<std::path::Path>,
         {
             let font = try!(from_file(path));
             Ok(self.insert(font))
@@ -192,13 +195,13 @@ pub mod font {
         pub fn ids(&self) -> Ids {
             Ids { keys: self.map.keys() }
         }
-
     }
 
 
     /// Load a `super::FontCollection` from a file at a given path.
     pub fn collection_from_file<P>(path: P) -> Result<super::FontCollection, std::io::Error>
-        where P: AsRef<std::path::Path>,
+    where
+        P: AsRef<std::path::Path>,
     {
         use std::io::Read;
         let path = path.as_ref();
@@ -210,7 +213,8 @@ pub mod font {
 
     /// Load a single `Font` from a file at the given path.
     pub fn from_file<P>(path: P) -> Result<super::Font, Error>
-        where P: AsRef<std::path::Path>
+    where
+        P: AsRef<std::path::Path>,
     {
         let collection = try!(collection_from_file(path));
         collection.into_font().ok_or(Error::NoFont)
@@ -250,7 +254,7 @@ pub mod font {
         fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
             match *self {
                 Error::IO(ref e) => std::fmt::Display::fmt(e, f),
-                _ => write!(f, "{}", std::error::Error::description(self))
+                _ => write!(f, "{}", std::error::Error::description(self)),
             }
         }
     }
@@ -315,18 +319,23 @@ pub mod glyph {
     ///
     /// Returns `None` if either the given `cursor::Index` `line` or `idx` fields are out of bounds
     /// of the line information yielded by the `line_infos` iterator.
-    pub fn index_after_cursor<I>(mut line_infos: I,
-                                 cursor_idx: super::cursor::Index) -> Option<usize>
-        where I: Iterator<Item=super::line::Info>,
+    pub fn index_after_cursor<I>(
+        mut line_infos: I,
+        cursor_idx: super::cursor::Index,
+    ) -> Option<usize>
+    where
+        I: Iterator<Item = super::line::Info>,
     {
-        line_infos
-            .nth(cursor_idx.line)
-            .and_then(|line_info| {
-                let start_char = line_info.start_char;
-                let end_char = line_info.end_char();
-                let char_index = start_char + cursor_idx.char;
-                if char_index <= end_char { Some(char_index) } else { None }
-            })
+        line_infos.nth(cursor_idx.line).and_then(|line_info| {
+            let start_char = line_info.start_char;
+            let end_char = line_info.end_char();
+            let char_index = start_char + cursor_idx.char;
+            if char_index <= end_char {
+                Some(char_index)
+            } else {
+                None
+            }
+        })
     }
 
     /// Produce an iterator that, for every `(line, line_rect)` pair yielded by the given iterator,
@@ -334,10 +343,13 @@ pub mod glyph {
     ///
     /// This is useful when information about character positioning is needed when reasoning about
     /// text layout.
-    pub fn rects_per_line<'a, I>(lines_with_rects: I,
-                                 font: &'a super::Font,
-                                 font_size: FontSize) -> RectsPerLine<'a, I>
-        where I: Iterator<Item=(&'a str, Rect)>,
+    pub fn rects_per_line<'a, I>(
+        lines_with_rects: I,
+        font: &'a super::Font,
+        font_size: FontSize,
+    ) -> RectsPerLine<'a, I>
+    where
+        I: Iterator<Item = (&'a str, Rect)>,
     {
         RectsPerLine {
             lines_with_rects: lines_with_rects,
@@ -353,27 +365,35 @@ pub mod glyph {
     /// will be produced.
     ///
     /// All lines that have no selected `Rect`s will be skipped.
-    pub fn selected_rects_per_line<'a, I>(lines_with_rects: I,
-                                          font: &'a super::Font,
-                                          font_size: FontSize,
-                                          start: super::cursor::Index,
-                                          end: super::cursor::Index) -> SelectedRectsPerLine<'a, I>
-        where I: Iterator<Item=(&'a str, Rect)>,
+    pub fn selected_rects_per_line<'a, I>(
+        lines_with_rects: I,
+        font: &'a super::Font,
+        font_size: FontSize,
+        start: super::cursor::Index,
+        end: super::cursor::Index,
+    ) -> SelectedRectsPerLine<'a, I>
+    where
+        I: Iterator<Item = (&'a str, Rect)>,
     {
         SelectedRectsPerLine {
-            enumerated_rects_per_line:
-                rects_per_line(lines_with_rects, font, font_size).enumerate(),
+            enumerated_rects_per_line: rects_per_line(lines_with_rects, font, font_size)
+                .enumerate(),
             start_cursor_idx: start,
             end_cursor_idx: end,
         }
     }
 
     impl<'a, I> Iterator for RectsPerLine<'a, I>
-        where I: Iterator<Item=(&'a str, Rect)>,
+    where
+        I: Iterator<Item = (&'a str, Rect)>,
     {
         type Item = Rects<'a, 'a>;
         fn next(&mut self) -> Option<Self::Item> {
-            let RectsPerLine { ref mut lines_with_rects, font, font_size } = *self;
+            let RectsPerLine {
+                ref mut lines_with_rects,
+                font,
+                font_size,
+            } = *self;
             let scale = super::pt_to_scale(font_size);
             lines_with_rects.next().map(|(line, line_rect)| {
                 let (x, y) = (line_rect.left() as f32, line_rect.top() as f32);
@@ -381,14 +401,15 @@ pub mod glyph {
                 Rects {
                     next_left: line_rect.x.start,
                     layout: font.layout(line, scale, point),
-                    y: line_rect.y
+                    y: line_rect.y,
                 }
             })
         }
     }
 
     impl<'a, I> Iterator for SelectedRectsPerLine<'a, I>
-        where I: Iterator<Item=(&'a str, Rect)>,
+    where
+        I: Iterator<Item = (&'a str, Rect)>,
     {
         type Item = SelectedRects<'a, 'a>;
         fn next(&mut self) -> Option<Self::Item> {
@@ -431,12 +452,18 @@ pub mod glyph {
     impl<'a, 'b> Iterator for Rects<'a, 'b> {
         type Item = Rect;
         fn next(&mut self) -> Option<Self::Item> {
-            let Rects { ref mut next_left, ref mut layout, y } = *self;
+            let Rects {
+                ref mut next_left,
+                ref mut layout,
+                y,
+            } = *self;
             layout.next().map(|g| {
                 let left = *next_left;
                 let right = g.pixel_bounding_box()
                     .map(|bb| bb.max.x as Scalar)
-                    .unwrap_or_else(|| left + g.unpositioned().h_metrics().advance_width as Scalar);
+                    .unwrap_or_else(|| {
+                        left + g.unpositioned().h_metrics().advance_width as Scalar
+                    });
                 *next_left = right;
                 let x = Range::new(left, right);
                 Rect { x: x, y: y }
@@ -447,12 +474,17 @@ pub mod glyph {
     impl<'a, 'b> Iterator for SelectedRects<'a, 'b> {
         type Item = Rect;
         fn next(&mut self) -> Option<Self::Item> {
-            let SelectedRects { ref mut enumerated_rects, end_char_idx } = *self;
-            enumerated_rects.next()
-                .and_then(|(i, rect)| {
-                    if i < end_char_idx { Some(rect) }
-                    else                { None }
-                })
+            let SelectedRects {
+                ref mut enumerated_rects,
+                end_char_idx,
+            } = *self;
+            enumerated_rects.next().and_then(
+                |(i, rect)| if i < end_char_idx {
+                    Some(rect)
+                } else {
+                    None
+                },
+            )
         }
     }
 
@@ -516,18 +548,18 @@ pub mod cursor {
 
 
     impl Index {
-
         /// The cursor index of the beginning of the word (block of non-whitespace) before `self`.
         ///
         /// If `self` is at the beginning of the line, call previous, which returns the last
         /// index position of the previous line, or None if it's the first line
         ///
-        /// If `self` points to whitespace, skip past that whitespace, then return the index of 
+        /// If `self` points to whitespace, skip past that whitespace, then return the index of
         /// the start of the word that precedes the whitespace
         ///
         /// If `self` is in the middle or end of a word, return the index of the start of that word
         pub fn previous_word_start<I>(self, text: &str, mut line_infos: I) -> Option<Self>
-            where I: Iterator<Item=super::line::Info>,
+        where
+            I: Iterator<Item = super::line::Info>,
         {
             let Index { line, char } = self;
             if char > 0 {
@@ -541,13 +573,18 @@ pub mod cursor {
                     let mut hit_non_whitespace = false;
                     for (i, char_) in chars_rev.enumerate() {
                         // loop until word starts, then continue until the word ends
-                        if !char_.is_whitespace() { hit_non_whitespace = true; }
+                        if !char_.is_whitespace() {
+                            hit_non_whitespace = true;
+                        }
                         if char_.is_whitespace() && hit_non_whitespace {
                             new_char = char - i;
-                            break
+                            break;
                         }
                     }
-                    Some(Index { line: line, char: new_char })
+                    Some(Index {
+                        line: line,
+                        char: new_char,
+                    })
                 })
             } else {
                 self.previous(line_infos)
@@ -561,37 +598,47 @@ pub mod cursor {
         /// If `self` is at the end of a line other than the last, this returns the first index of
         /// the next line.
         ///
-        /// If `self` points to whitespace, skip past that whitespace, then return the index of 
+        /// If `self` points to whitespace, skip past that whitespace, then return the index of
         /// the end of the word after the whitespace
         ///
         /// If `self` is in the middle or start of a word, return the index of the end of that word
         pub fn next_word_end<I>(self, text: &str, mut line_infos: I) -> Option<Self>
-            where I: Iterator<Item=super::line::Info>,
+        where
+            I: Iterator<Item = super::line::Info>,
         {
             let Index { line, char } = self;
-            line_infos.nth(line)
-                .and_then(|line_info| {
-                    let line_count = line_info.char_range().count();
-                    if char < line_count {
-                        let mut chars = (&text[line_info.byte_range()]).chars();
-                        let mut new_char = line_count;
-                        let mut hit_non_whitespace = false;
-                        if char != 0 {
-                            chars.nth(char - 1);
-                        }
-                        for (i, char_) in chars.enumerate() {
-                            // loop until word starts, then continue until the word ends
-                            if !char_.is_whitespace() { hit_non_whitespace = true; }
-                            if char_.is_whitespace() && hit_non_whitespace {
-                                new_char = char + i;
-                                break
-                            }
-                        }
-                        Some(Index { line: line, char: new_char })
-                    } else {
-                        line_infos.next().map(|_| Index { line: line + 1, char: 0 })
+            line_infos.nth(line).and_then(|line_info| {
+                let line_count = line_info.char_range().count();
+                if char < line_count {
+                    let mut chars = (&text[line_info.byte_range()]).chars();
+                    let mut new_char = line_count;
+                    let mut hit_non_whitespace = false;
+                    if char != 0 {
+                        chars.nth(char - 1);
                     }
-                })
+                    for (i, char_) in chars.enumerate() {
+                        // loop until word starts, then continue until the word ends
+                        if !char_.is_whitespace() {
+                            hit_non_whitespace = true;
+                        }
+                        if char_.is_whitespace() && hit_non_whitespace {
+                            new_char = char + i;
+                            break;
+                        }
+                    }
+                    Some(Index {
+                        line: line,
+                        char: new_char,
+                    })
+                } else {
+                    line_infos.next().map(|_| {
+                        Index {
+                            line: line + 1,
+                            char: 0,
+                        }
+                    })
+                }
+            })
         }
 
         /// The cursor index that comes before `self`.
@@ -604,24 +651,31 @@ pub mod cursor {
         /// If `self` is a position other than the start of a line, it will return the position
         /// that is immediately to the left.
         pub fn previous<I>(self, mut line_infos: I) -> Option<Self>
-            where I: Iterator<Item=super::line::Info>,
+        where
+            I: Iterator<Item = super::line::Info>,
         {
             let Index { line, char } = self;
             if char > 0 {
                 let new_char = char - 1;
-                line_infos.nth(line)
-                    .and_then(|info| if new_char <= info.char_range().count() {
-                        Some(Index { line: line, char: new_char })
-                    } else {
-                        None
+                line_infos.nth(line).and_then(|info| if new_char <=
+                    info.char_range().count()
+                {
+                    Some(Index {
+                        line: line,
+                        char: new_char,
                     })
+                } else {
+                    None
+                })
             } else if line > 0 {
                 let new_line = line - 1;
-                line_infos.nth(new_line)
-                    .map(|info| {
-                        let new_char = info.end_char() - info.start_char;
-                        Index { line: new_line, char: new_char }
-                    })
+                line_infos.nth(new_line).map(|info| {
+                    let new_char = info.end_char() - info.start_char;
+                    Index {
+                        line: new_line,
+                        char: new_char,
+                    }
+                })
             } else {
                 None
             }
@@ -637,17 +691,25 @@ pub mod cursor {
         /// If `self` is a position other than the end of a line, it will return the position that
         /// is immediately to the right.
         pub fn next<I>(self, mut line_infos: I) -> Option<Self>
-            where I: Iterator<Item=super::line::Info>,
+        where
+            I: Iterator<Item = super::line::Info>,
         {
             let Index { line, char } = self;
-            line_infos.nth(line)
-                .and_then(|info| {
-                    if char >= info.char_range().count() {
-                        line_infos.next().map(|_| Index { line: line + 1, char: 0 })
-                    } else {
-                        Some(Index { line: line, char: char + 1 })
+            line_infos.nth(line).and_then(|info| if char >=
+                info.char_range().count()
+            {
+                line_infos.next().map(|_| {
+                    Index {
+                        line: line + 1,
+                        char: 0,
                     }
                 })
+            } else {
+                Some(Index {
+                    line: line,
+                    char: char + 1,
+                })
+            })
         }
 
         /// Clamps `self` to the given lines.
@@ -657,14 +719,18 @@ pub mod cursor {
         ///
         /// If `line_infos` is empty, returns cursor at line=0 char=0.
         pub fn clamp_to_lines<I>(self, line_infos: I) -> Self
-            where I: Iterator<Item=super::line::Info>,
+        where
+            I: Iterator<Item = super::line::Info>,
         {
             let mut last = None;
             for (i, info) in line_infos.enumerate() {
                 if i == self.line {
                     let num_chars = info.char_range().len();
                     let char = std::cmp::min(self.char, num_chars);
-                    return Index { line: i, char: char };
+                    return Index {
+                        line: i,
+                        char: char,
+                    };
                 }
                 last = Some((i, info));
             }
@@ -676,7 +742,6 @@ pub mod cursor {
                 None => Index { line: 0, char: 0 },
             }
         }
-
     }
 
 
@@ -684,11 +749,12 @@ pub mod cursor {
     ///
     /// Yields `(xs, y_range)`, where `y_range` is the `Range` occupied by the line across the *y*
     /// axis and `xs` is every possible cursor position along the *x* axis
-    pub fn xys_per_line<'a, I>(lines_with_rects: I,
-                               font: &'a super::Font,
-                               text: &'a str,
-                               font_size: FontSize) -> XysPerLine<'a, I>
-    {
+    pub fn xys_per_line<'a, I>(
+        lines_with_rects: I,
+        font: &'a super::Font,
+        text: &'a str,
+        font_size: FontSize,
+    ) -> XysPerLine<'a, I> {
         XysPerLine {
             lines_with_rects: lines_with_rects,
             font: font,
@@ -706,18 +772,25 @@ pub mod cursor {
     ///
     /// Yields `(xs, y_range)`, where `y_range` is the `Range` occupied by the line across the *y*
     /// axis and `xs` is every possible cursor position along the *x* axis.
-    pub fn xys_per_line_from_text<'a>(text: &'a str,
-                                      line_infos: &'a [super::line::Info],
-                                      font: &'a super::Font,
-                                      font_size: FontSize,
-                                      x_align: super::Justify,
-                                      y_align: Align,
-                                      line_spacing: Scalar,
-                                      rect: Rect) -> XysPerLineFromText<'a>
-    {
+    pub fn xys_per_line_from_text<'a>(
+        text: &'a str,
+        line_infos: &'a [super::line::Info],
+        font: &'a super::Font,
+        font_size: FontSize,
+        x_align: super::Justify,
+        y_align: Align,
+        line_spacing: Scalar,
+        rect: Rect,
+    ) -> XysPerLineFromText<'a> {
         let line_infos = line_infos.iter().cloned();
-        let line_rects = super::line::rects(line_infos.clone(), font_size, rect,
-                                            x_align, y_align, line_spacing);
+        let line_rects = super::line::rects(
+            line_infos.clone(),
+            font_size,
+            rect,
+            x_align,
+            y_align,
+            line_spacing,
+        );
         let lines = line_infos.clone();
         let lines_with_rects = lines.zip(line_rects.clone());
         XysPerLineFromText {
@@ -727,13 +800,17 @@ pub mod cursor {
 
     /// Convert the given character index into a cursor `Index`.
     pub fn index_before_char<I>(line_infos: I, char_index: usize) -> Option<Index>
-        where I: Iterator<Item=super::line::Info>,
+    where
+        I: Iterator<Item = super::line::Info>,
     {
         for (i, line_info) in line_infos.enumerate() {
             let start_char = line_info.start_char;
             let end_char = line_info.end_char();
             if start_char <= char_index && char_index <= end_char {
-                return Some(Index { line: i, char: char_index - start_char });
+                return Some(Index {
+                    line: i,
+                    char: char_index - start_char,
+                });
             }
         }
         None
@@ -741,7 +818,8 @@ pub mod cursor {
 
     /// Determine the *xy* location of the cursor at the given cursor `Index`.
     pub fn xy_at<'a, I>(xys_per_line: I, idx: Index) -> Option<(Scalar, Range)>
-        where I: Iterator<Item=(Xs<'a, 'a>, Range)>,
+    where
+        I: Iterator<Item = (Xs<'a, 'a>, Range)>,
     {
         for (i, (xs, y)) in xys_per_line.enumerate() {
             if i == idx.line {
@@ -758,21 +836,24 @@ pub mod cursor {
     /// Find the closest line for the given `y` position, and return the line index, Xs iterator, and y-range of that line
     ///
     /// Returns `None` if there are no lines
-    pub fn closest_line<'a, I>(y_pos: Scalar, xys_per_line: I) -> Option<(usize, Xs<'a,'a>, Range)>
-        where I: Iterator<Item = (Xs<'a, 'a>, Range)>,
+    pub fn closest_line<'a, I>(y_pos: Scalar, xys_per_line: I) -> Option<(usize, Xs<'a, 'a>, Range)>
+    where
+        I: Iterator<Item = (Xs<'a, 'a>, Range)>,
     {
         let mut xys_per_line_enumerated = xys_per_line.enumerate();
-        xys_per_line_enumerated.next().and_then(|(first_line_idx, (first_line_xs, first_line_y))| {
-            let mut closest_line = (first_line_idx,first_line_xs,first_line_y);
+        xys_per_line_enumerated.next().and_then(|(first_line_idx,
+          (first_line_xs,
+           first_line_y))| {
+            let mut closest_line = (first_line_idx, first_line_xs, first_line_y);
             let mut closest_diff = (y_pos - first_line_y.middle()).abs();
             for (line_idx, (line_xs, line_y)) in xys_per_line_enumerated {
                 if line_y.is_over(y_pos) {
-                    closest_line = (line_idx,line_xs,line_y);
+                    closest_line = (line_idx, line_xs, line_y);
                     break;
                 } else {
                     let diff = (y_pos - line_y.middle()).abs();
                     if diff < closest_diff {
-                        closest_line = (line_idx,line_xs,line_y);
+                        closest_line = (line_idx, line_xs, line_y);
                         closest_diff = diff;
                     } else {
                         break;
@@ -788,10 +869,13 @@ pub mod cursor {
     ///
     /// Returns `None` if the given `text` is empty.
     pub fn closest_cursor_index_and_xy<'a, I>(xy: Point, xys_per_line: I) -> Option<(Index, Point)>
-        where I: Iterator<Item = (Xs<'a, 'a>, Range)>,
+    where
+        I: Iterator<Item = (Xs<'a, 'a>, Range)>,
     {
-        closest_line(xy[1], xys_per_line)
-            .and_then(|(closest_line_idx, closest_line_xs, closest_line_y)| {
+        closest_line(xy[1], xys_per_line).and_then(
+            |(closest_line_idx,
+              closest_line_xs,
+              closest_line_y)| {
                 let (closest_char_idx, closest_x) =
                     closest_cursor_index_on_line(xy[0], closest_line_xs);
                 let index = Index {
@@ -800,7 +884,8 @@ pub mod cursor {
                 };
                 let point = [closest_x, closest_line_y.middle()];
                 Some((index, point))
-            })
+            },
+        )
     }
 
     /// Find the closest cursor index to the given `x` position on the given line along with the
@@ -810,12 +895,12 @@ pub mod cursor {
         // `xs` always yields at least one `x` (the start of the line).
         let (first_idx, first_x) = xs_enumerated.next().unwrap();
         let first_diff = (x_pos - first_x).abs();
-        let mut closest = (first_idx,first_x);
+        let mut closest = (first_idx, first_x);
         let mut closest_diff = first_diff;
         for (i, x) in xs_enumerated {
             let diff = (x_pos - x).abs();
             if diff < closest_diff {
-                closest = (i,x);
+                closest = (i, x);
                 closest_diff = diff;
             } else {
                 break;
@@ -826,13 +911,19 @@ pub mod cursor {
 
 
     impl<'a, I> Iterator for XysPerLine<'a, I>
-        where I: Iterator<Item=(super::line::Info, Rect)>,
+    where
+        I: Iterator<Item = (super::line::Info, Rect)>,
     {
         // The `Range` occupied by the line across the *y* axis, along with an iterator yielding
         // each possible cursor position along the *x* axis.
         type Item = (Xs<'a, 'a>, Range);
         fn next(&mut self) -> Option<Self::Item> {
-            let XysPerLine { ref mut lines_with_rects, font, text, font_size } = *self;
+            let XysPerLine {
+                ref mut lines_with_rects,
+                font,
+                text,
+                font_size,
+            } = *self;
             let scale = super::pt_to_scale(font_size);
             lines_with_rects.next().map(|(line_info, line_rect)| {
                 let line = &text[line_info.byte_range()];
@@ -861,14 +952,11 @@ pub mod cursor {
         type Item = Scalar;
         fn next(&mut self) -> Option<Self::Item> {
             self.next_x.map(|x| {
-                self.next_x = self.layout.next()
-                    .map(|g| {
-                        g.pixel_bounding_box()
-                            .map(|r| r.max.x as Scalar)
-                            .unwrap_or_else(|| {
-                                x + g.unpositioned().h_metrics().advance_width as Scalar
-                            })
-                    });
+                self.next_x = self.layout.next().map(|g| {
+                    g.pixel_bounding_box()
+                        .map(|r| r.max.x as Scalar)
+                        .unwrap_or_else(|| x + g.unpositioned().h_metrics().advance_width as Scalar)
+                });
                 x
             })
         }
@@ -956,7 +1044,7 @@ pub mod line {
         last_break: Option<Break>,
     }
 
-    /// An iterator yielding a `Rect` for each line in 
+    /// An iterator yielding a `Rect` for each line in
     #[derive(Clone)]
     pub struct Rects<I> {
         infos: I,
@@ -980,7 +1068,6 @@ pub mod line {
 
 
     impl Break {
-
         /// Return the index at which the break occurs.
         pub fn byte_index(self) -> usize {
             match self {
@@ -1000,11 +1087,11 @@ pub mod line {
                 Break::End { char, .. } => char,
             }
         }
-
     }
 
     impl<'a, F> Clone for Infos<'a, F>
-        where F: Clone,
+    where
+        F: Clone,
     {
         fn clone(&self) -> Self {
             Infos {
@@ -1021,7 +1108,6 @@ pub mod line {
     }
 
     impl Info {
-
         /// The end of the byte index range for indexing into the slice.
         pub fn end_byte(&self) -> usize {
             self.end_break.byte_index()
@@ -1041,11 +1127,9 @@ pub mod line {
         pub fn char_range(self) -> std::ops::Range<usize> {
             self.start_char..self.end_char()
         }
-
     }
 
     impl<'a> Infos<'a, NextBreakFnPtr> {
-
         /// Converts `Self` into an `Infos` whose lines are wrapped at the character that first
         /// causes the line width to exceed the given `max_width`.
         pub fn wrap_by_character(mut self, max_width: Scalar) -> Self {
@@ -1061,7 +1145,6 @@ pub mod line {
             self.max_width = max_width;
             self
         }
-
     }
 
 
@@ -1073,11 +1156,12 @@ pub mod line {
     /// This is primarily for use within the `next_break` functions below.
     ///
     /// The following code is adapted from the rusttype::LayoutIter::next src.
-    fn advance_width(ch: char,
-                     font: &super::Font,
-                     scale: super::Scale,
-                     last_glyph: &mut Option<super::GlyphId>) -> Scalar
-    {
+    fn advance_width(
+        ch: char,
+        font: &super::Font,
+        scale: super::Scale,
+        last_glyph: &mut Option<super::GlyphId>,
+    ) -> Scalar {
         let g = font.glyph(ch).unwrap().scaled(scale);
         let kern = last_glyph
             .map(|last| font.pair_kerning(scale, last, g.id()))
@@ -1090,10 +1174,7 @@ pub mod line {
 
     /// Returns the next index at which the text naturally breaks via a newline character,
     /// along with the width of the line.
-    fn next_break(text: &str,
-                  font: &super::Font,
-                  font_size: FontSize) -> (Break, Scalar)
-    {
+    fn next_break(text: &str, font: &super::Font, font_size: FontSize) -> (Break, Scalar) {
         let scale = super::pt_to_scale(font_size);
         let mut width = 0.0;
         let mut char_i = 0;
@@ -1103,11 +1184,19 @@ pub mod line {
             // Check for a newline.
             if ch == '\r' {
                 if let Some(&(_, '\n')) = char_indices.peek() {
-                    let break_ = Break::Newline { byte: byte_i, char: char_i, len_bytes: 2 };
+                    let break_ = Break::Newline {
+                        byte: byte_i,
+                        char: char_i,
+                        len_bytes: 2,
+                    };
                     return (break_, width);
                 }
             } else if ch == '\n' {
-                let break_ = Break::Newline { byte: byte_i, char: char_i, len_bytes: 1 };
+                let break_ = Break::Newline {
+                    byte: byte_i,
+                    char: char_i,
+                    len_bytes: 1,
+                };
                 return (break_, width);
             }
 
@@ -1115,7 +1204,10 @@ pub mod line {
             width += advance_width(ch, font, scale, &mut last_glyph);
             char_i += 1;
         }
-        let break_ = Break::End { byte: text.len(), char: char_i };
+        let break_ = Break::End {
+            byte: text.len(),
+            char: char_i,
+        };
         (break_, width)
     }
 
@@ -1124,11 +1216,12 @@ pub mod line {
     /// - A line wrap at the beginning of the first character exceeding the `max_width`.
     ///
     /// Also returns the width of each line alongside the Break.
-    fn next_break_by_character(text: &str,
-                               font: &super::Font,
-                               font_size: FontSize,
-                               max_width: Scalar) -> (Break, Scalar)
-    {
+    fn next_break_by_character(
+        text: &str,
+        font: &super::Font,
+        font_size: FontSize,
+        max_width: Scalar,
+    ) -> (Break, Scalar) {
         let scale = super::pt_to_scale(font_size);
         let mut width = 0.0;
         let mut char_i = 0;
@@ -1139,11 +1232,19 @@ pub mod line {
             // Check for a newline.
             if ch == '\r' {
                 if let Some(&(_, '\n')) = char_indices.peek() {
-                    let break_ = Break::Newline { byte: byte_i, char: char_i, len_bytes: 2 };
+                    let break_ = Break::Newline {
+                        byte: byte_i,
+                        char: char_i,
+                        len_bytes: 2,
+                    };
                     return (break_, width);
                 }
             } else if ch == '\n' {
-                let break_ = Break::Newline { byte: byte_i, char: char_i, len_bytes: 1 };
+                let break_ = Break::Newline {
+                    byte: byte_i,
+                    char: char_i,
+                    len_bytes: 1,
+                };
                 return (break_, width);
             }
 
@@ -1152,7 +1253,11 @@ pub mod line {
 
             // Check for a line wrap.
             if new_width > max_width {
-                let break_ = Break::Wrap { byte: byte_i, char: char_i, len_bytes: 0 };
+                let break_ = Break::Wrap {
+                    byte: byte_i,
+                    char: char_i,
+                    len_bytes: 0,
+                };
                 return (break_, width);
             }
 
@@ -1160,7 +1265,10 @@ pub mod line {
             char_i += 1;
         }
 
-        let break_ = Break::End { byte: text.len(), char: char_i };
+        let break_ = Break::End {
+            byte: text.len(),
+            char: char_i,
+        };
         (break_, width)
     }
 
@@ -1172,12 +1280,17 @@ pub mod line {
     /// if no whitespace appears for `max_width` characters.
     ///
     /// Also returns the width the line alongside the Break.
-    fn next_break_by_whitespace(text: &str,
-                                font: &super::Font,
-                                font_size: FontSize,
-                                max_width: Scalar) -> (Break, Scalar)
-    {
-        struct Last { byte: usize, char: usize, width_before: Scalar }
+    fn next_break_by_whitespace(
+        text: &str,
+        font: &super::Font,
+        font_size: FontSize,
+        max_width: Scalar,
+    ) -> (Break, Scalar) {
+        struct Last {
+            byte: usize,
+            char: usize,
+            width_before: Scalar,
+        }
         let scale = super::pt_to_scale(font_size);
         let mut last_whitespace_start = None;
         let mut width = 0.0;
@@ -1189,11 +1302,19 @@ pub mod line {
             // Check for a newline.
             if ch == '\r' {
                 if let Some(&(_, '\n')) = char_indices.peek() {
-                    let break_ = Break::Newline { byte: byte_i, char: char_i, len_bytes: 2 };
-                    return (break_, width)
+                    let break_ = Break::Newline {
+                        byte: byte_i,
+                        char: char_i,
+                        len_bytes: 2,
+                    };
+                    return (break_, width);
                 }
             } else if ch == '\n' {
-                let break_ = Break::Newline { byte: byte_i, char: char_i, len_bytes: 1 };
+                let break_ = Break::Newline {
+                    byte: byte_i,
+                    char: char_i,
+                    len_bytes: 1,
+                };
                 return (break_, width);
             }
 
@@ -1203,12 +1324,24 @@ pub mod line {
             // Check for a line wrap.
             if width > max_width {
                 match last_whitespace_start {
-                    Some(Last { byte, char, width_before }) => {
-                        let break_ = Break::Wrap { byte: byte, char: char, len_bytes: 1 };
+                    Some(Last {
+                             byte,
+                             char,
+                             width_before,
+                         }) => {
+                        let break_ = Break::Wrap {
+                            byte: byte,
+                            char: char,
+                            len_bytes: 1,
+                        };
                         return (break_, width_before);
-                    },
+                    }
                     None => {
-                        let break_ = Break::Wrap { byte: byte_i, char: char_i, len_bytes: 0 };
+                        let break_ = Break::Wrap {
+                            byte: byte_i,
+                            char: char_i,
+                            len_bytes: 0,
+                        };
                         return (break_, width);
                     }
                 }
@@ -1216,14 +1349,21 @@ pub mod line {
 
             // Check for a new whitespace.
             if ch.is_whitespace() {
-                last_whitespace_start = Some(Last { byte: byte_i, char: char_i, width_before: width });
+                last_whitespace_start = Some(Last {
+                    byte: byte_i,
+                    char: char_i,
+                    width_before: width,
+                });
             }
 
             width = new_width;
             char_i += 1;
         }
 
-        let break_ = Break::End { byte: text.len(), char: char_i };
+        let break_ = Break::End {
+            byte: text.len(),
+            char: char_i,
+        };
         (break_, width)
     }
 
@@ -1246,12 +1386,15 @@ pub mod line {
 
 
     /// Produce an `Infos` iterator wrapped by the given `next_break_fn`.
-    pub fn infos_wrapped_by<'a, F>(text: &'a str,
-                                   font: &'a super::Font,
-                                   font_size: FontSize,
-                                   max_width: Scalar,
-                                   next_break_fn: F) -> Infos<'a, F>
-        where F: for<'b> FnMut(&'b str, &'b super::Font, FontSize, Scalar) -> (Break, Scalar)
+    pub fn infos_wrapped_by<'a, F>(
+        text: &'a str,
+        font: &'a super::Font,
+        font_size: FontSize,
+        max_width: Scalar,
+        next_break_fn: F,
+    ) -> Infos<'a, F>
+    where
+        F: for<'b> FnMut(&'b str, &'b super::Font, FontSize, Scalar) -> (Break, Scalar),
     {
         Infos {
             text: text,
@@ -1269,15 +1412,17 @@ pub mod line {
     ///
     /// The produced `Infos` iterator will not wrap the text, and only break each line via newline
     /// characters within the text (either `\n` or `\r\n`).
-    pub fn infos<'a>(text: &'a str,
-                     font: &'a super::Font,
-                     font_size: FontSize) -> Infos<'a, NextBreakFnPtr>
-    {
-        fn no_wrap(text: &str,
-                   font: &super::Font,
-                   font_size: FontSize,
-                   _max_width: Scalar) -> (Break, Scalar)
-        {
+    pub fn infos<'a>(
+        text: &'a str,
+        font: &'a super::Font,
+        font_size: FontSize,
+    ) -> Infos<'a, NextBreakFnPtr> {
+        fn no_wrap(
+            text: &str,
+            font: &super::Font,
+            font_size: FontSize,
+            _max_width: Scalar,
+        ) -> (Break, Scalar) {
             next_break(text, font, font_size)
         }
 
@@ -1288,13 +1433,16 @@ pub mod line {
     ///
     /// This function assumes that `font_size` is the same `FontSize` used to produce the `Info`s
     /// yielded by the `infos` Iterator.
-    pub fn rects<I>(mut infos: I,
-                    font_size: FontSize,
-                    bounding_rect: Rect,
-                    x_align: super::Justify,
-                    y_align: Align,
-                    line_spacing: Scalar) -> Rects<I>
-        where I: Iterator<Item=Info> + ExactSizeIterator,
+    pub fn rects<I>(
+        mut infos: I,
+        font_size: FontSize,
+        bounding_rect: Rect,
+        x_align: super::Justify,
+        y_align: Align,
+        line_spacing: Scalar,
+    ) -> Rects<I>
+    where
+        I: Iterator<Item = Info> + ExactSizeIterator,
     {
         let num_lines = infos.len();
         let first_rect = infos.next().map(|first_info| {
@@ -1335,22 +1483,32 @@ pub mod line {
     /// The yielded `Rect`s represent the selected range within each line of text.
     ///
     /// Lines that do not contain any selected text will be skipped.
-    pub fn selected_rects<'a, I>(lines_with_rects: I,
-                                 font: &'a super::Font,
-                                 font_size: FontSize,
-                                 start: super::cursor::Index,
-                                 end: super::cursor::Index) -> SelectedRects<'a, I>
-        where I: Iterator<Item=(&'a str, Rect)>,
+    pub fn selected_rects<'a, I>(
+        lines_with_rects: I,
+        font: &'a super::Font,
+        font_size: FontSize,
+        start: super::cursor::Index,
+        end: super::cursor::Index,
+    ) -> SelectedRects<'a, I>
+    where
+        I: Iterator<Item = (&'a str, Rect)>,
     {
         SelectedRects {
-            selected_char_rects_per_line:
-                super::glyph::selected_rects_per_line(lines_with_rects, font, font_size, start, end)
+            selected_char_rects_per_line: super::glyph::selected_rects_per_line(
+                lines_with_rects,
+                font,
+                font_size,
+                start,
+                end,
+            ),
         }
     }
 
 
     impl<'a, F> Iterator for Infos<'a, F>
-        where F: for<'b> FnMut(&'b str, &'b super::Font, FontSize, Scalar) -> (Break, Scalar)
+    where
+        F: for<'b> FnMut(&'b str, &'b super::Font, FontSize, Scalar)
+                      -> (Break, Scalar),
     {
         type Item = Info;
         fn next(&mut self) -> Option<Self::Item> {
@@ -1366,21 +1524,28 @@ pub mod line {
             } = *self;
 
             match next_break_fn(&text[*start_byte..], font, font_size, max_width) {
-                (next @ Break::Newline { .. }, width) | (next @ Break::Wrap { .. }, width) => {
+                (next @ Break::Newline { .. }, width) |
+                (next @ Break::Wrap { .. }, width) => {
 
                     let next_break = match next {
-                        Break::Newline { byte, char, len_bytes } =>
-                            Break::Newline {
-                                byte: *start_byte + byte,
-                                char: *start_char + char,
-                                len_bytes: len_bytes,
-                            },
-                        Break::Wrap { byte, char, len_bytes } =>
-                            Break::Wrap {
-                                byte: *start_byte + byte,
-                                char: *start_char + char,
-                                len_bytes: len_bytes,
-                            },
+                        Break::Newline {
+                            byte,
+                            char,
+                            len_bytes,
+                        } => Break::Newline {
+                            byte: *start_byte + byte,
+                            char: *start_char + char,
+                            len_bytes: len_bytes,
+                        },
+                        Break::Wrap {
+                            byte,
+                            char,
+                            len_bytes,
+                        } => Break::Wrap {
+                            byte: *start_byte + byte,
+                            char: *start_char + char,
+                            len_bytes: len_bytes,
+                        },
                         _ => unreachable!(),
                     };
 
@@ -1392,25 +1557,36 @@ pub mod line {
                     };
 
                     match next {
-                        Break::Newline { byte, char, len_bytes } |
-                        Break::Wrap { byte, char, len_bytes } => {
+                        Break::Newline {
+                            byte,
+                            char,
+                            len_bytes,
+                        } |
+                        Break::Wrap {
+                            byte,
+                            char,
+                            len_bytes,
+                        } => {
                             *start_byte = info.start_byte + byte + len_bytes;
                             *start_char = info.start_char + char + 1;
-                        },
+                        }
                         _ => unreachable!(),
                     };
                     *last_break = Some(next_break);
                     Some(info)
-                },
+                }
 
                 (Break::End { char, .. }, width) => {
                     // if the last line ends in a new line, or the entire text is empty, return an empty line Info
                     let empty_line = {
                         match *last_break {
-                            Some(last_break_) => match last_break_ {
-                                Break::Newline { .. } => true,
-                                _ => false,
-                            }, None => true,
+                            Some(last_break_) => {
+                                match last_break_ {
+                                    Break::Newline { .. } => true,
+                                    _ => false,
+                                }
+                            }
+                            None => true,
                         }
                     };
                     if *start_byte < text.len() || empty_line {
@@ -1433,17 +1609,23 @@ pub mod line {
                     } else {
                         None
                     }
-                },
+                }
             }
         }
     }
 
     impl<I> Iterator for Rects<I>
-        where I: Iterator<Item=Info>,
+    where
+        I: Iterator<Item = Info>,
     {
         type Item = Rect;
         fn next(&mut self) -> Option<Self::Item> {
-            let Rects { ref mut next, ref mut infos, x_align, line_spacing } = *self;
+            let Rects {
+                ref mut next,
+                ref mut infos,
+                x_align,
+                line_spacing,
+            } = *self;
             next.map(|line_rect| {
                 *next = infos.next().map(|info| {
 
@@ -1471,7 +1653,8 @@ pub mod line {
     }
 
     impl<'a, I> Iterator for SelectedRects<'a, I>
-        where I: Iterator<Item=(&'a str, Rect)>,
+    where
+        I: Iterator<Item = (&'a str, Rect)>,
     {
         type Item = Rect;
         fn next(&mut self) -> Option<Self::Item> {

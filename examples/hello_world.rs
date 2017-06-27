@@ -5,13 +5,15 @@
 //! `EventLoop` in the `examples/support` module. It has been inlined in order to provide an
 //! example that does not depend on the `support` module.
 
-#[cfg(all(feature="winit", feature="glium"))] #[macro_use] extern crate conrod;
+#[cfg(all(feature = "winit", feature = "glium"))]
+#[macro_use]
+extern crate conrod;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     use conrod::{self, widget, Colorable, Positionable, Widget};
     use conrod::backend::glium::glium;
@@ -39,8 +41,10 @@ mod feature {
         let ids = Ids::new(ui.widget_id_generator());
 
         // Add a `Font` to the `Ui`'s `font::Map` from file.
-        const FONT_PATH: &'static str =
-            concat!(env!("CARGO_MANIFEST_DIR"), "/assets/fonts/NotoSans/NotoSans-Regular.ttf");
+        const FONT_PATH: &'static str = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/assets/fonts/NotoSans/NotoSans-Regular.ttf"
+        );
         ui.fonts.insert_from_file(FONT_PATH).unwrap();
 
         // A type used for converting `conrod::render::Primitives` into `Command`s that can be used
@@ -89,7 +93,7 @@ mod feature {
                     glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                     glium::glutin::Event::Closed =>
                         break 'main,
-                    _ => {},
+                    _ => {}
                 }
             }
 
@@ -117,10 +121,12 @@ mod feature {
     }
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` and `glium` features. \
-                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` and `glium` features. \
+                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+        );
     }
 }

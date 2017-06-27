@@ -83,7 +83,6 @@ impl WidgetDefault {
 }
 
 impl Theme {
-
     /// The default theme if not loading from file.
     pub fn default() -> Theme {
         Theme {
@@ -110,18 +109,20 @@ impl Theme {
     ///
     /// Attempts to cast the `Box<WidgetStyle>` to the **Widget**'s unique associated style **T**.
     pub fn widget_style<T>(&self) -> Option<UniqueDefault<T>>
-        where T: widget::Style,
+    where
+        T: widget::Style,
     {
         let style_id = std::any::TypeId::of::<T>();
-        self.widget_styling.get(&style_id).and_then(|boxed_default| {
-            boxed_default.style.downcast_ref().map(|style| {
-                let common = &boxed_default.common;
-                UniqueDefault {
-                    style: style,
-                    common: common,
-                }
-            })
-        })
+        self.widget_styling.get(&style_id).and_then(
+            |boxed_default| {
+                boxed_default.style.downcast_ref().map(|style| {
+                    let common = &boxed_default.common;
+                    UniqueDefault {
+                        style: style,
+                        common: common,
+                    }
+                })
+            },
+        )
     }
-
 }

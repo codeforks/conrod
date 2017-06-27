@@ -77,7 +77,7 @@ macro_rules! builder_method {
 ///     pub fn new() -> Self {
 ///         Button { color: None }
 ///     }
-///     
+///
 ///     /// A Color "builder method".
 ///     ///
 ///     /// Builds the Button with the given Color.

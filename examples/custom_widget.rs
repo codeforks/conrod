@@ -11,13 +11,15 @@
 //!
 //! For more information, please see the `Widget` trait documentation.
 
-#[macro_use] extern crate conrod;
+#[macro_use]
+extern crate conrod;
 extern crate find_folder;
-#[cfg(all(feature="winit", feature="glium"))] mod support;
+#[cfg(all(feature = "winit", feature = "glium"))]
+mod support;
 
 
 /// The module in which we'll implement our own custom circular button.
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod circular_button {
     use conrod::{self, widget, Colorable, Dimensions, Labelable, Point, Positionable, Widget};
 
@@ -32,7 +34,7 @@ mod circular_button {
         style: Style,
         /// Whether the button is currently enabled, i.e. whether it responds to
         /// user input.
-        enabled: bool
+        enabled: bool,
     }
 
     // We use the `widget_style!` macro to vastly simplify the definition and implementation of the
@@ -84,7 +86,6 @@ mod circular_button {
     }
 
     impl<'a> CircularButton<'a> {
-
         /// Create a button context to be built upon.
         pub fn new() -> Self {
             CircularButton {
@@ -109,7 +110,6 @@ mod circular_button {
             self.enabled = flag;
             self
         }
-
     }
 
     /// A custom Conrod widget must implement the Widget trait. See the **Widget** trait
@@ -143,7 +143,14 @@ mod circular_button {
         /// Update the state of the button by handling any input that has occurred since the last
         /// update.
         fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-            let widget::UpdateArgs { id, state, rect, mut ui, style, .. } = args;
+            let widget::UpdateArgs {
+                id,
+                state,
+                rect,
+                mut ui,
+                style,
+                ..
+            } = args;
 
             let (color, event) = {
                 let input = ui.widget_input(id);
@@ -152,16 +159,19 @@ mod circular_button {
                 let event = input.clicks().left().next().map(|_| ());
 
                 let color = style.color(&ui.theme);
-                let color = input.mouse().map_or(color, |mouse| {
-                    if is_over_circ([0.0, 0.0], mouse.rel_xy(), rect.dim()) {
-                        if mouse.buttons.left().is_down() {
-                            color.clicked()
-                        } else {
-                            color.highlighted()
-                        }
+                let color = input.mouse().map_or(color, |mouse| if is_over_circ(
+                    [0.0, 0.0],
+                    mouse.rel_xy(),
+                    rect.dim(),
+                )
+                {
+                    if mouse.buttons.left().is_down() {
+                        color.clicked()
                     } else {
-                        color
+                        color.highlighted()
                     }
+                } else {
+                    color
                 });
 
                 (color, event)
@@ -205,7 +215,6 @@ mod circular_button {
 
             event
         }
-
     }
 
     /// Provide the chainable color() configuration method.
@@ -235,7 +244,7 @@ mod circular_button {
 }
 
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 fn main() {
     use conrod::{self, widget, Colorable, Labelable, Positionable, Sizeable, Widget};
     use conrod::backend::glium::glium;
@@ -270,7 +279,9 @@ fn main() {
     let ids = Ids::new(ui.widget_id_generator());
 
     // Add a `Font` to the `Ui`'s `font::Map` from file.
-    let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+    let assets = find_folder::Search::KidsThenParents(3, 5)
+        .for_folder("assets")
+        .unwrap();
     let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
     let regular = ui.fonts.insert_from_file(font_path).unwrap();
 
@@ -299,16 +310,19 @@ fn main() {
                 glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                 glium::glutin::Event::Closed =>
                     break 'main,
-                _ => {},
+                _ => {}
             }
         }
 
         // Instantiate the widgets.
         {
-           let ui = &mut ui.set_widgets();
+            let ui = &mut ui.set_widgets();
 
             // Sets a color to clear the background with before the Ui draws our widget.
-            widget::Canvas::new().color(conrod::color::DARK_RED).set(ids.background, ui);
+            widget::Canvas::new().color(conrod::color::DARK_RED).set(
+                ids.background,
+                ui,
+            );
 
             // Instantiate of our custom widget.
             for _click in CircularButton::new()
@@ -337,8 +351,10 @@ fn main() {
     }
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 fn main() {
-    println!("This example requires the `winit` and `glium` features. \
-             Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+    println!(
+        "This example requires the `winit` and `glium` features. \
+             Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+    );
 }

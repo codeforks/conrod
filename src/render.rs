@@ -92,15 +92,14 @@ pub struct Primitive<'a> {
 
 /// The unique kind for each primitive element in the Ui.
 pub enum PrimitiveKind<'a> {
-
     /// A filled `Rectangle`.
     ///
     /// These are produced by the `Rectangle` and `BorderedRectangle` primitive widgets. A `Filled`
     /// `Rectangle` widget produces a single `Rectangle`. The `BorderedRectangle` produces two
     /// `Rectangle`s, the first for the outer border and the second for the inner on top.
     Rectangle {
-        /// The fill colour for the rectangle. 
-        color: Color
+        /// The fill colour for the rectangle.
+        color: Color,
     },
 
     /// A filled `Polygon`.
@@ -164,7 +163,6 @@ pub enum PrimitiveKind<'a> {
     /// They can then retrieve the unique state of the widget and cast it to its actual type using
     /// either of the `Container::state_and_style` or `Container::unique_widget_state` methods.
     Other(&'a graph::Container),
-
 }
 
 /// A type used for producing a `PositionedGlyph` iterator.
@@ -195,9 +193,7 @@ struct OwnedPrimitive {
 
 #[derive(Clone)]
 enum OwnedPrimitiveKind {
-    Rectangle {
-        color: Color,
-    },
+    Rectangle { color: Color },
     Polygon {
         color: Color,
         point_range: std::ops::Range<usize>,
@@ -244,7 +240,6 @@ pub struct WalkOwnedPrimitives<'a> {
 
 
 impl<'a> Text<'a> {
-
     /// Produces a list of `PositionedGlyph`s which may be used to cache and render the text.
     ///
     /// `dpi_factor`, aka "dots per inch factor" is a multiplier representing the density of
@@ -277,21 +272,23 @@ impl<'a> Text<'a> {
         // Produce the text layout iterators.
         let line_infos = line_infos.iter().cloned();
         let lines = line_infos.clone().map(|info| &text[info.byte_range()]);
-        let line_rects = text::line::rects(line_infos, font_size, rect,
-                                           justify, y_align, line_spacing);
+        let line_rects =
+            text::line::rects(line_infos, font_size, rect, justify, y_align, line_spacing);
 
         // Clear the existing glyphs and fill the buffer with glyphs for this Text.
         positioned_glyphs.clear();
         let scale = text::pt_to_scale((font_size as f32 * dpi_factor) as FontSize);
         for (line, line_rect) in lines.zip(line_rects) {
-            let (x, y) = (trans_x(line_rect.left()) as f32, trans_y(line_rect.bottom()) as f32);
+            let (x, y) = (
+                trans_x(line_rect.left()) as f32,
+                trans_y(line_rect.bottom()) as f32,
+            );
             let point = text::rt::Point { x: x, y: y };
             positioned_glyphs.extend(font.layout(line, scale, point).map(|g| g.standalone()));
         }
 
         positioned_glyphs
     }
-
 }
 
 const CIRCLE_RESOLUTION: usize = 50;
@@ -299,14 +296,14 @@ const NUM_POINTS: usize = CIRCLE_RESOLUTION + 1;
 
 
 impl<'a> Primitives<'a> {
-
     /// Constructor for the `Primitives` iterator.
-    pub fn new(graph: &'a Graph,
-               depth_order: &'a [widget::Id],
-               theme: &'a Theme,
-               fonts: &'a text::font::Map,
-               window_dim: Dimensions) -> Self
-    {
+    pub fn new(
+        graph: &'a Graph,
+        depth_order: &'a [widget::Id],
+        theme: &'a Theme,
+        fonts: &'a text::font::Map,
+        window_dim: Dimensions,
+    ) -> Self {
         Primitives {
             crop_stack: Vec::new(),
             depth_order: depth_order.iter(),
@@ -337,14 +334,15 @@ impl<'a> Primitives<'a> {
 
         while let Some(widget) = next_widget(depth_order, graph, crop_stack, window_rect) {
             use widget::primitive::point_path::{State as PointPathState, Style as PointPathStyle};
-            use widget::primitive::shape::polygon::{State as PolygonState};
+            use widget::primitive::shape::polygon::State as PolygonState;
             use widget::primitive::shape::Style as ShapeStyle;
 
             let (id, scizzor, container) = widget;
             let rect = container.rect;
 
             fn state_type_id<W>() -> std::any::TypeId
-                where W: Widget,
+            where
+                W: Widget,
             {
                 std::any::TypeId::of::<W::State>()
             }
@@ -358,7 +356,7 @@ impl<'a> Primitives<'a> {
                         ShapeStyle::Fill(_) => {
                             let kind = PrimitiveKind::Rectangle { color: color };
                             return Some(new_primitive(id, kind, scizzor, rect));
-                        },
+                        }
                         ShapeStyle::Outline(ref line_style) => {
                             let (l, r, b, t) = rect.l_r_b_t();
                             points[0] = [l, b];
@@ -375,7 +373,7 @@ impl<'a> Primitives<'a> {
                                 points: &points[..5],
                             };
                             return Some(new_primitive(id, kind, scizzor, rect));
-                        },
+                        }
                     }
                 }
 
@@ -388,7 +386,7 @@ impl<'a> Primitives<'a> {
                     let t = 2.0 * PI / CIRCLE_RESOLUTION as Scalar;
                     let hw = w / 2.0;
                     let hh = h / 2.0;
-                    let f = |i: Scalar| [x + hw * (t*i).cos(), y + hh * (t*i).sin()];
+                    let f = |i: Scalar| [x + hw * (t * i).cos(), y + hh * (t * i).sin()];
                     for i in 0..NUM_POINTS {
                         points[i] = f(i as f64);
                     }
@@ -397,9 +395,12 @@ impl<'a> Primitives<'a> {
                     let points = &mut points[..NUM_POINTS];
                     match *style {
                         ShapeStyle::Fill(_) => {
-                            let kind = PrimitiveKind::Polygon { color: color, points: points };
+                            let kind = PrimitiveKind::Polygon {
+                                color: color,
+                                points: points,
+                            };
                             return Some(new_primitive(id, kind, scizzor, rect));
-                        },
+                        }
                         ShapeStyle::Outline(ref line_style) => {
                             let cap = line_style.get_cap(theme);
                             let thickness = line_style.get_thickness(theme);
@@ -410,22 +411,28 @@ impl<'a> Primitives<'a> {
                                 points: points,
                             };
                             return Some(new_primitive(id, kind, scizzor, rect));
-                        },
+                        }
                     }
                 }
 
             } else if container.type_id == std::any::TypeId::of::<PolygonState>() {
                 use widget::primitive::shape::Style;
                 if let Some(polygon) = container.state_and_style::<PolygonState, Style>() {
-                    let graph::UniqueWidgetState { ref state, ref style } = *polygon;
+                    let graph::UniqueWidgetState {
+                        ref state,
+                        ref style,
+                    } = *polygon;
 
                     let color = style.get_color(theme);
                     let points = &state.points[..];
                     match *style {
                         ShapeStyle::Fill(_) => {
-                            let kind = PrimitiveKind::Polygon { color: color, points: points };
+                            let kind = PrimitiveKind::Polygon {
+                                color: color,
+                                points: points,
+                            };
                             return Some(new_primitive(id, kind, scizzor, rect));
-                        },
+                        }
                         ShapeStyle::Outline(ref line_style) => {
                             let cap = line_style.get_cap(theme);
                             let thickness = line_style.get_thickness(theme);
@@ -436,13 +443,16 @@ impl<'a> Primitives<'a> {
                                 points: points,
                             };
                             return Some(new_primitive(id, kind, scizzor, rect));
-                        },
+                        }
                     }
                 }
 
             } else if container.type_id == state_type_id::<widget::Line>() {
                 if let Some(line) = container.unique_widget_state::<widget::Line>() {
-                    let graph::UniqueWidgetState { ref state, ref style } = *line;
+                    let graph::UniqueWidgetState {
+                        ref state,
+                        ref style,
+                    } = *line;
                     let color = style.get_color(theme);
                     let cap = style.get_cap(theme);
                     let thickness = style.get_thickness(theme);
@@ -459,8 +469,13 @@ impl<'a> Primitives<'a> {
                 }
 
             } else if container.type_id == std::any::TypeId::of::<PointPathState>() {
-                if let Some(point_path) = container.state_and_style::<PointPathState, PointPathStyle>() {
-                    let graph::UniqueWidgetState { ref state, ref style } = *point_path;
+                if let Some(point_path) = container
+                    .state_and_style::<PointPathState, PointPathStyle>()
+                {
+                    let graph::UniqueWidgetState {
+                        ref state,
+                        ref style,
+                    } = *point_path;
                     let color = style.get_color(theme);
                     let cap = style.get_cap(theme);
                     let thickness = style.get_thickness(theme);
@@ -476,7 +491,10 @@ impl<'a> Primitives<'a> {
 
             } else if container.type_id == state_type_id::<widget::Text>() {
                 if let Some(text) = container.unique_widget_state::<widget::Text>() {
-                    let graph::UniqueWidgetState { ref state, ref style } = *text;
+                    let graph::UniqueWidgetState {
+                        ref state,
+                        ref style,
+                    } = *text;
                     let font_id = match style.font_id(theme).or_else(|| fonts.ids().next()) {
                         Some(id) => id,
                         None => continue,
@@ -517,7 +535,10 @@ impl<'a> Primitives<'a> {
             } else if container.type_id == state_type_id::<widget::Image>() {
                 use widget::primitive::image::{State, Style};
                 if let Some(image) = container.state_and_style::<State, Style>() {
-                    let graph::UniqueWidgetState { ref state, ref style } = *image;
+                    let graph::UniqueWidgetState {
+                        ref state,
+                        ref style,
+                    } = *image;
                     let color = style.maybe_color(theme);
                     let kind = PrimitiveKind::Image {
                         color: color,
@@ -547,12 +568,20 @@ impl<'a> Primitives<'a> {
         let mut texts_string = String::new();
         let mut max_glyphs = 0;
 
-        while let Some(Primitive { id, rect, scizzor, kind }) = self.next() {
-            let new = |kind| OwnedPrimitive {
-                id: id,
-                rect: rect,
-                scizzor: scizzor,
-                kind: kind,
+        while let Some(Primitive {
+                           id,
+                           rect,
+                           scizzor,
+                           kind,
+                       }) = self.next()
+        {
+            let new = |kind| {
+                OwnedPrimitive {
+                    id: id,
+                    rect: rect,
+                    scizzor: scizzor,
+                    kind: kind,
+                }
             };
 
             match kind {
@@ -560,7 +589,7 @@ impl<'a> Primitives<'a> {
                 PrimitiveKind::Rectangle { color } => {
                     let kind = OwnedPrimitiveKind::Rectangle { color: color };
                     primitives.push(new(kind));
-                },
+                }
 
                 PrimitiveKind::Polygon { color, points } => {
                     let start = primitive_points.len();
@@ -571,9 +600,14 @@ impl<'a> Primitives<'a> {
                         point_range: start..end,
                     };
                     primitives.push(new(kind));
-                },
+                }
 
-                PrimitiveKind::Lines { color, cap, thickness, points } => {
+                PrimitiveKind::Lines {
+                    color,
+                    cap,
+                    thickness,
+                    points,
+                } => {
                     let start = primitive_points.len();
                     primitive_points.extend(points.iter().cloned());
                     let end = primitive_points.len();
@@ -584,18 +618,26 @@ impl<'a> Primitives<'a> {
                         point_range: start..end,
                     };
                     primitives.push(new(kind));
-                },
+                }
 
-                PrimitiveKind::Image { image_id, color, source_rect } => {
+                PrimitiveKind::Image {
+                    image_id,
+                    color,
+                    source_rect,
+                } => {
                     let kind = OwnedPrimitiveKind::Image {
                         image_id: image_id,
                         color: color,
                         source_rect: source_rect,
                     };
                     primitives.push(new(kind));
-                },
+                }
 
-                PrimitiveKind::Text { color, font_id, text } => {
+                PrimitiveKind::Text {
+                    color,
+                    font_id,
+                    text,
+                } => {
                     let Text {
                         window_dim,
                         text,
@@ -641,7 +683,7 @@ impl<'a> Primitives<'a> {
                         text: owned_text,
                     };
                     primitives.push(new(kind));
-                },
+                }
 
                 // TODO: Not sure how we should handle this yet.
                 PrimitiveKind::Other(_) => (),
@@ -657,12 +699,10 @@ impl<'a> Primitives<'a> {
             texts_string: texts_string,
         }
     }
-
 }
 
 
 impl OwnedPrimitives {
-
     /// Produce an iterator-like type for yielding `Primitive`s.
     pub fn walk(&self) -> WalkOwnedPrimitives {
         let OwnedPrimitives {
@@ -680,11 +720,9 @@ impl OwnedPrimitives {
             positioned_glyphs: Vec::with_capacity(max_glyphs),
         }
     }
-
 }
 
 impl<'a> WalkOwnedPrimitives<'a> {
-
     /// Yield the next `Primitive` in order or rendering depth, bottom to top.
     pub fn next(&mut self) -> Option<Primitive> {
         let WalkOwnedPrimitives {
@@ -695,12 +733,19 @@ impl<'a> WalkOwnedPrimitives<'a> {
             texts_str,
         } = *self;
 
-        primitives.next().map(move |&OwnedPrimitive { id, rect, scizzor, ref kind }| {
-            let new = |kind| Primitive {
-                id: id,
-                rect: rect,
-                scizzor: scizzor,
-                kind: kind,
+        primitives.next().map(move |&OwnedPrimitive {
+                  id,
+                  rect,
+                  scizzor,
+                  ref kind,
+              }| {
+            let new = |kind| {
+                Primitive {
+                    id: id,
+                    rect: rect,
+                    scizzor: scizzor,
+                    kind: kind,
+                }
             };
 
             match *kind {
@@ -708,17 +753,25 @@ impl<'a> WalkOwnedPrimitives<'a> {
                 OwnedPrimitiveKind::Rectangle { color } => {
                     let kind = PrimitiveKind::Rectangle { color: color };
                     new(kind)
-                },
+                }
 
-                OwnedPrimitiveKind::Polygon { color, ref point_range } => {
+                OwnedPrimitiveKind::Polygon {
+                    color,
+                    ref point_range,
+                } => {
                     let kind = PrimitiveKind::Polygon {
                         color: color,
                         points: &points[point_range.clone()],
                     };
                     new(kind)
-                },
+                }
 
-                OwnedPrimitiveKind::Lines { color, cap, thickness, ref point_range } => {
+                OwnedPrimitiveKind::Lines {
+                    color,
+                    cap,
+                    thickness,
+                    ref point_range,
+                } => {
                     let kind = PrimitiveKind::Lines {
                         color: color,
                         cap: cap,
@@ -726,9 +779,13 @@ impl<'a> WalkOwnedPrimitives<'a> {
                         points: &points[point_range.clone()],
                     };
                     new(kind)
-                },
+                }
 
-                OwnedPrimitiveKind::Text { color, font_id, ref text } => {
+                OwnedPrimitiveKind::Text {
+                    color,
+                    font_id,
+                    ref text,
+                } => {
                     let OwnedText {
                         ref str_byte_range,
                         ref line_infos_range,
@@ -763,20 +820,23 @@ impl<'a> WalkOwnedPrimitives<'a> {
                         text: text,
                     };
                     new(kind)
-                },
+                }
 
-                OwnedPrimitiveKind::Image { image_id, color, source_rect } => {
+                OwnedPrimitiveKind::Image {
+                    image_id,
+                    color,
+                    source_rect,
+                } => {
                     let kind = PrimitiveKind::Image {
                         image_id: image_id,
                         color: color,
                         source_rect: source_rect,
                     };
                     new(kind)
-                },
+                }
             }
         })
     }
-
 }
 
 
@@ -793,11 +853,12 @@ fn new_primitive(id: widget::Id, kind: PrimitiveKind, scizzor: Rect, rect: Rect)
 
 /// Retrieves the next visible widget from the `depth_order`, updating the `crop_stack` as
 /// necessary.
-fn next_widget<'a>(depth_order: &mut std::slice::Iter<widget::Id>,
-                   graph: &'a Graph,
-                   crop_stack: &mut Vec<(widget::Id, Rect)>,
-                   window_rect: Rect) -> Option<(widget::Id, Rect, &'a graph::Container)>
-{
+fn next_widget<'a>(
+    depth_order: &mut std::slice::Iter<widget::Id>,
+    graph: &'a Graph,
+    crop_stack: &mut Vec<(widget::Id, Rect)>,
+    window_rect: Rect,
+) -> Option<(widget::Id, Rect, &'a graph::Container)> {
     while let Some(&id) = depth_order.next() {
         let container = match graph.widget(id) {
             Some(container) => container,
@@ -816,19 +877,24 @@ fn next_widget<'a>(depth_order: &mut std::slice::Iter<widget::Id>,
         }
 
         // Check the stack for the current Context.
-        let scizzor = crop_stack.last().map(|&(_, scizzor)| scizzor).unwrap_or(window_rect);
+        let scizzor = crop_stack.last().map(|&(_, scizzor)| scizzor).unwrap_or(
+            window_rect,
+        );
 
         // If the current widget should crop its children, we need to add a rect for it to
         // the top of the crop stack.
         if container.crop_kids {
-            let scizzor_rect = container.kid_area.rect.overlap(scizzor)
-                .unwrap_or_else(|| Rect::from_xy_dim([0.0, 0.0], [0.0, 0.0]));
+            let scizzor_rect = container.kid_area.rect.overlap(scizzor).unwrap_or_else(
+                || {
+                    Rect::from_xy_dim([0.0, 0.0], [0.0, 0.0])
+                },
+            );
             crop_stack.push((id, scizzor_rect));
         }
 
         // We only want to return primitives that are actually visible.
-        let is_visible = container.rect.overlap(window_rect).is_some()
-            && graph::algo::cropped_area_of_widget(graph, id).is_some();
+        let is_visible = container.rect.overlap(window_rect).is_some() &&
+            graph::algo::cropped_area_of_widget(graph, id).is_some();
         if !is_visible {
             continue;
         }

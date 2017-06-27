@@ -40,7 +40,6 @@ widget_style!{
 
 
 impl Image {
-
     /// Construct a new `Image`.
     ///
     /// Note that the `Image` widget does not require borrowing or owning any image data directly.
@@ -85,7 +84,6 @@ impl Image {
     builder_methods!{
         pub color { style.maybe_color = Some(Option<Color>) }
     }
-
 }
 
 
@@ -138,5 +136,4 @@ impl Widget for Image {
             state.update(|state| state.src_rect = src_rect);
         }
     }
-
 }

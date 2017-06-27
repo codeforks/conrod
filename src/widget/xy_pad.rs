@@ -1,15 +1,6 @@
 //! Used for displaying and controlling a 2D point on a cartesian plane within a given range.
 
-use {
-    Color,
-    Colorable,
-    Borderable,
-    FontSize,
-    Labelable,
-    Positionable,
-    Scalar,
-    Widget,
-};
+use {Color, Colorable, Borderable, FontSize, Labelable, Positionable, Scalar, Widget};
 use num::Float;
 use text;
 use utils::{map_range, val_to_string};
@@ -22,8 +13,12 @@ use widget;
 /// the cursor is above the rectangle.
 pub struct XYPad<'a, X, Y> {
     common: widget::CommonBuilder,
-    x: X, min_x: X, max_x: X,
-    y: Y, min_y: Y, max_y: Y,
+    x: X,
+    min_x: X,
+    max_x: X,
+    y: Y,
+    min_y: Y,
+    max_y: Y,
     maybe_label: Option<&'a str>,
     style: Style,
     /// Indicates whether the XYPad will respond to user input.
@@ -69,13 +64,16 @@ pub struct State {
 
 
 impl<'a, X, Y> XYPad<'a, X, Y> {
-
     /// Build a new XYPad widget.
     pub fn new(x_val: X, min_x: X, max_x: X, y_val: Y, min_y: Y, max_y: Y) -> Self {
         XYPad {
             common: widget::CommonBuilder::new(),
-            x: x_val, min_x: min_x, max_x: max_x,
-            y: y_val, min_y: min_y, max_y: max_y,
+            x: x_val,
+            min_x: min_x,
+            max_x: max_x,
+            y: y_val,
+            min_y: min_y,
+            max_y: max_y,
             maybe_label: None,
             style: Style::new(),
             enabled: true,
@@ -93,12 +91,12 @@ impl<'a, X, Y> XYPad<'a, X, Y> {
         pub value_font_size { style.value_font_size = Some(FontSize) }
         pub enabled { enabled = bool }
     }
-
 }
 
 impl<'a, X, Y> Widget for XYPad<'a, X, Y>
-    where X: Float + ToString + ::std::fmt::Debug + ::std::any::Any,
-          Y: Float + ToString + ::std::fmt::Debug + ::std::any::Any,
+where
+    X: Float + ToString + ::std::fmt::Debug + ::std::any::Any,
+    Y: Float + ToString + ::std::fmt::Debug + ::std::any::Any,
 {
     type State = State;
     type Style = Style;
@@ -113,9 +111,7 @@ impl<'a, X, Y> Widget for XYPad<'a, X, Y>
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -126,10 +122,21 @@ impl<'a, X, Y> Widget for XYPad<'a, X, Y>
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         use position::{Direction, Edge};
 
-        let widget::UpdateArgs { id, state, rect, style, ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            style,
+            ui,
+            ..
+        } = args;
         let XYPad {
-            x, min_x, max_x,
-            y, min_y, max_y,
+            x,
+            min_x,
+            max_x,
+            y,
+            min_y,
+            max_y,
             maybe_label,
             ..
         } = self;
@@ -157,14 +164,16 @@ impl<'a, X, Y> Widget for XYPad<'a, X, Y>
             None
         };
 
-        let interaction_color = |ui: &::ui::UiCell, color: Color|
-            ui.widget_input(id).mouse()
+        let interaction_color = |ui: &::ui::UiCell, color: Color| {
+            ui.widget_input(id)
+                .mouse()
                 .map(|mouse| if mouse.buttons.left().is_down() {
                     color.clicked()
                 } else {
                     color.highlighted()
                 })
-                .unwrap_or(color);
+                .unwrap_or(color)
+        };
 
         // The backdrop **BorderedRectangle** widget.
         let dim = rect.dim();
@@ -249,7 +258,6 @@ impl<'a, X, Y> Widget for XYPad<'a, X, Y>
 
         event
     }
-
 }
 
 

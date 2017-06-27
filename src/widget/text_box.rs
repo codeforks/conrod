@@ -55,7 +55,6 @@ pub struct State {
 }
 
 impl<'a> TextBox<'a> {
-
     /// Construct a TextBox widget.
     pub fn new(text: &'a str) -> Self {
         TextBox {
@@ -92,7 +91,6 @@ impl<'a> TextBox<'a> {
         pub justify { style.justify = Some(text::Justify) }
         pub pad_text { style.text_padding = Some(Scalar) }
     }
-
 }
 
 /// Events produced by the `TextBox`.
@@ -118,9 +116,7 @@ impl<'a> Widget for TextBox<'a> {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -129,7 +125,14 @@ impl<'a> Widget for TextBox<'a> {
 
     /// Update the state of the TextEdit.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, rect, style, mut ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            style,
+            mut ui,
+            ..
+        } = args;
         let TextBox { text, .. } = self;
 
         let font_size = style.font_size(ui.theme());
@@ -178,20 +181,23 @@ impl<'a> Widget for TextBox<'a> {
         // TODO: We should probably be doing this via the `TextEdit` widget.
         for widget_event in ui.widget_input(state.ids.text_edit).events() {
             match widget_event {
-                event::Widget::Press(press) => match press.button {
-                    event::Button::Keyboard(key) => match key {
-                        input::Key::Return => events.push(Event::Enter),
+                event::Widget::Press(press) => {
+                    match press.button {
+                        event::Button::Keyboard(key) => {
+                            match key {
+                                input::Key::Return => events.push(Event::Enter),
+                                _ => (),
+                            }
+                        }
                         _ => (),
-                    },
-                    _ => (),
-                },
+                    }
+                }
                 _ => (),
             }
         }
 
         events
     }
-
 }
 
 impl<'a> Borderable for TextBox<'a> {

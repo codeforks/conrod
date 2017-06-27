@@ -28,15 +28,8 @@ pub use self::widget::Widget;
 #[doc(inline)]
 pub use piston_input::keyboard::ModifierKey;
 #[doc(inline)]
-pub use piston_input::{
-    Button,
-    ControllerButton,
-    ControllerAxisArgs,
-    keyboard,
-    Key,
-    MouseButton,
-    RenderArgs,
-};
+pub use piston_input::{Button, ControllerButton, ControllerAxisArgs, keyboard, Key, MouseButton,
+                       RenderArgs};
 
 
 /// Sources from which user input may be received.
@@ -113,16 +106,13 @@ pub mod touch {
     }
 
     impl Id {
-
         /// Construct a new identifier.
         pub fn new(id: u64) -> Self {
             Id(id)
         }
-
     }
 
     impl Touch {
-
         /// Returns a copy of the `Touch` relative to the given `xy`.
         pub fn relative_to(&self, xy: Point) -> Self {
             Touch {
@@ -130,7 +120,6 @@ pub mod touch {
                 ..*self
             }
         }
-
     }
 
 }

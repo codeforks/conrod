@@ -1,13 +1,16 @@
 //! An example demonstrating all widgets in a long, vertically scrollable window.
 
-#[cfg(feature="piston")] #[macro_use] extern crate conrod;
-#[cfg(feature="piston")] mod support;
+#[cfg(feature = "piston")]
+#[macro_use]
+extern crate conrod;
+#[cfg(feature = "piston")]
+mod support;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(feature="piston")]
+#[cfg(feature = "piston")]
 mod feature {
     extern crate find_folder;
     extern crate piston_window;
@@ -25,8 +28,7 @@ mod feature {
         const HEIGHT: u32 = support::WIN_H;
 
         // Construct the window.
-        let mut window: PistonWindow =
-            WindowSettings::new("All Widgets - Piston Backend", [WIDTH, HEIGHT])
+        let mut window: PistonWindow = WindowSettings::new("All Widgets - Piston Backend", [WIDTH, HEIGHT])
                 .opengl(OpenGL::V3_2) // If not working, try `OpenGL::V2_1`.
                 .samples(4)
                 .exit_on_esc(true)
@@ -40,7 +42,9 @@ mod feature {
             .build();
 
         // Add a `Font` to the `Ui`'s `font::Map` from file.
-        let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+            .for_folder("assets")
+            .unwrap();
         let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
         ui.fonts.insert_from_file(font_path).unwrap();
 
@@ -49,12 +53,14 @@ mod feature {
         let (mut glyph_cache, mut text_texture_cache) = {
             const SCALE_TOLERANCE: f32 = 0.1;
             const POSITION_TOLERANCE: f32 = 0.1;
-            let cache = conrod::text::GlyphCache::new(WIDTH, HEIGHT, SCALE_TOLERANCE, POSITION_TOLERANCE);
+            let cache =
+                conrod::text::GlyphCache::new(WIDTH, HEIGHT, SCALE_TOLERANCE, POSITION_TOLERANCE);
             let buffer_len = WIDTH as usize * HEIGHT as usize;
             let init = vec![128; buffer_len];
             let settings = TextureSettings::new();
             let factory = &mut window.factory;
-            let texture = G2dTexture::from_memory_alpha(factory, &init, WIDTH, HEIGHT, &settings).unwrap();
+            let texture = G2dTexture::from_memory_alpha(factory, &init, WIDTH, HEIGHT, &settings)
+                .unwrap();
             (cache, texture)
         };
 
@@ -63,7 +69,9 @@ mod feature {
 
         // Load the rust logo from file to a piston_window texture.
         let rust_logo: G2dTexture = {
-            let assets = find_folder::Search::ParentsThenKids(3, 3).for_folder("assets").unwrap();
+            let assets = find_folder::Search::ParentsThenKids(3, 3)
+                .for_folder("assets")
+                .unwrap();
             let path = assets.join("images/rust.png");
             let factory = &mut window.factory;
             let settings = TextureSettings::new();
@@ -131,10 +139,12 @@ mod feature {
     }
 }
 
-#[cfg(not(feature="piston"))]
+#[cfg(not(feature = "piston"))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `piston` feature. \
-                 Try running `cargo run --release --features=\"piston\" --example <example_name>`");
+        println!(
+            "This example requires the `piston` feature. \
+                 Try running `cargo run --release --features=\"piston\" --example <example_name>`"
+        );
     }
 }

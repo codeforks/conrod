@@ -1,11 +1,14 @@
-#[cfg(all(feature="winit", feature="glium"))] #[macro_use] extern crate conrod;
-#[cfg(all(feature="winit", feature="glium"))] mod support;
+#[cfg(all(feature = "winit", feature = "glium"))]
+#[macro_use]
+extern crate conrod;
+#[cfg(all(feature = "winit", feature = "glium"))]
+mod support;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
     use conrod;
@@ -38,13 +41,21 @@ mod feature {
         let ids = Ids::new(ui.widget_id_generator());
 
         // Add a `Font` to the `Ui`'s `font::Map` from file.
-        let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+            .for_folder("assets")
+            .unwrap();
         let noto_sans = assets.join("fonts/NotoSans");
         // Store our `font::Id`s in a struct for easy access in the `set_ui` function.
         let fonts = Fonts {
-            regular: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Regular.ttf")).unwrap(),
-            italic: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Italic.ttf")).unwrap(),
-            bold: ui.fonts.insert_from_file(noto_sans.join("NotoSans-Bold.ttf")).unwrap(),
+            regular: ui.fonts
+                .insert_from_file(noto_sans.join("NotoSans-Regular.ttf"))
+                .unwrap(),
+            italic: ui.fonts
+                .insert_from_file(noto_sans.join("NotoSans-Italic.ttf"))
+                .unwrap(),
+            bold: ui.fonts
+                .insert_from_file(noto_sans.join("NotoSans-Bold.ttf"))
+                .unwrap(),
         };
 
         // Specify the default font to use when none is specified by the widget.
@@ -77,7 +88,7 @@ mod feature {
                     glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                     glium::glutin::Event::Closed =>
                         break 'main,
-                    _ => {},
+                    _ => {}
                 }
             }
 
@@ -111,11 +122,18 @@ mod feature {
         use conrod::{color, widget, Colorable, Positionable, Scalar, Sizeable, Widget};
 
         // Our `Canvas` tree, upon which we will place our text widgets.
-        widget::Canvas::new().flow_right(&[
-            (ids.left_col, widget::Canvas::new().color(color::BLACK)),
-            (ids.middle_col, widget::Canvas::new().color(color::DARK_CHARCOAL)),
-            (ids.right_col, widget::Canvas::new().color(color::CHARCOAL)),
-        ]).set(ids.master, ui);
+        widget::Canvas::new()
+            .flow_right(
+                &[
+                    (ids.left_col, widget::Canvas::new().color(color::BLACK)),
+                    (
+                        ids.middle_col,
+                        widget::Canvas::new().color(color::DARK_CHARCOAL),
+                    ),
+                    (ids.right_col, widget::Canvas::new().color(color::CHARCOAL)),
+                ],
+            )
+            .set(ids.master, ui);
 
         const DEMO_TEXT: &'static str = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. \
             Mauris aliquet porttitor tellus vel euismod. Integer lobortis volutpat bibendum. Nulla \
@@ -156,10 +174,12 @@ mod feature {
     }
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` and `glium` features. \
-                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` and `glium` features. \
+                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+        );
     }
 }

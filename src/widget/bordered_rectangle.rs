@@ -1,15 +1,6 @@
 //! The `BorderedRectangle` widget and related items.
 
-use {
-    Color,
-    Colorable,
-    Dimensions,
-    Borderable,
-    Positionable,
-    Scalar,
-    Sizeable,
-    Widget,
-};
+use {Color, Colorable, Dimensions, Borderable, Positionable, Scalar, Sizeable, Widget};
 use widget;
 
 
@@ -56,7 +47,6 @@ pub struct State {
 }
 
 impl BorderedRectangle {
-
     /// Build a new **BorderedRectangle**.
     pub fn new(dim: Dimensions) -> Self {
         BorderedRectangle {
@@ -66,7 +56,6 @@ impl BorderedRectangle {
     }
 
     builder_method!(pub with_style { style = Style });
-
 }
 
 
@@ -84,9 +73,7 @@ impl Widget for BorderedRectangle {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -95,7 +82,14 @@ impl Widget for BorderedRectangle {
 
     /// Update the state of the Rectangle.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, style, rect, ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            style,
+            rect,
+            ui,
+            ..
+        } = args;
 
         let border = style.border(&ui.theme);
         if border > 0.0 {
@@ -116,7 +110,6 @@ impl Widget for BorderedRectangle {
             .graphics_for(id)
             .set(state.ids.rectangle, ui);
     }
-
 }
 
 

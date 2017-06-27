@@ -1,7 +1,7 @@
 //! A simple, non-interactive widget for drawing a single **Oval**.
 
 use {Color, Colorable, Dimensions, Sizeable, Widget};
-use super::Style as Style;
+use super::Style;
 use widget;
 
 
@@ -20,7 +20,6 @@ pub struct State;
 
 
 impl Oval {
-
     /// Build an **Oval** with the given dimensions and style.
     pub fn styled(dim: Dimensions, style: Style) -> Self {
         Oval {
@@ -48,7 +47,6 @@ impl Oval {
     pub fn outline_styled(dim: Dimensions, line_style: widget::line::Style) -> Self {
         Oval::styled(dim, Style::outline_styled(line_style))
     }
-
 }
 
 
@@ -76,7 +74,6 @@ impl Widget for Oval {
     fn update(self, _args: widget::UpdateArgs<Self>) -> Self::Event {
         // Nothing to be updated here.
     }
-
 }
 
 

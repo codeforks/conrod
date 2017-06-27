@@ -67,17 +67,15 @@ pub type StateY = State<Y>;
 impl Scroll {
     /// The default `Scroll` args.
     pub fn new() -> Self {
-        Scroll {
-            maybe_initial_alignment: None,
-        }
+        Scroll { maybe_initial_alignment: None }
     }
 }
 
 
 impl<A> State<A>
-    where A: Axis
+where
+    A: Axis,
 {
-
     /// Calculate the new scroll state for the single axis of a `Widget`.
     ///
     /// ```txt
@@ -144,25 +142,27 @@ impl<A> State<A>
     ///                         |   |                       |
     ///          >   scrollable |   =========================
     ///          ^      range y |
-    ///          ^              |    
-    ///          ^              |    
-    ///   offset ^              |    
-    ///   bounds ^              |    
-    ///     .end ^              |    
-    ///          ^              |    
-    ///          ^              |    
-    ///          +              >    
+    ///          ^              |
+    ///          ^              |
+    ///   offset ^              |
+    ///   bounds ^              |
+    ///     .end ^              |
+    ///          ^              |
+    ///          ^              |
+    ///          +              >
     ///
     /// ```
-    pub fn update(ui: &Ui,
-                  idx: super::Id,
-                  kid_area: &super::KidArea,
-                  maybe_prev_scroll_state: Option<Self>,
-                  additional_offset: Scalar) -> Self
-    {
+    pub fn update(
+        ui: &Ui,
+        idx: super::Id,
+        kid_area: &super::KidArea,
+        maybe_prev_scroll_state: Option<Self>,
+        additional_offset: Scalar,
+    ) -> Self {
 
         // Retrieve the *current* scroll offset.
-        let current_offset = maybe_prev_scroll_state.as_ref()
+        let current_offset = maybe_prev_scroll_state
+            .as_ref()
             .map(|state| state.offset)
             .unwrap_or(0.0);
 
@@ -179,16 +179,17 @@ impl<A> State<A>
         let scrollable_range = {
             ui.kids_bounding_box(idx)
                 .map(|kids| {
-                    A::parallel_range(kids)
-                        .shift(-current_offset)
-                        .shift(-kid_area_range.middle())
+                    A::parallel_range(kids).shift(-current_offset).shift(
+                        -kid_area_range.middle(),
+                    )
                 })
                 .unwrap_or_else(|| Range::new(0.0, 0.0))
         };
 
         // Determine the min and max offst bounds. These bounds are the limits to which the
         // scrollable_range may be shifted in either direction across the range.
-        let min_offset = Range::new(scrollable_range.start, kid_area_range_origin.start).magnitude();
+        let min_offset = Range::new(scrollable_range.start, kid_area_range_origin.start)
+            .magnitude();
         let max_offset = Range::new(scrollable_range.end, kid_area_range_origin.end).magnitude();
         let offset_bounds = Range::new(min_offset, max_offset);
 
@@ -198,16 +199,19 @@ impl<A> State<A>
         // If the range is scrollable, calculate the new offset by adding the `additional_offset`.
         //
         // The `additional_offset` is given via a `Scroll` event.
-        let new_offset_unbounded =
-            if is_scrollable { current_offset + additional_offset }
-            else             { current_offset };
+        let new_offset_unbounded = if is_scrollable {
+            current_offset + additional_offset
+        } else {
+            current_offset
+        };
 
         // Clamp the new offset to ensure it does not exceed the `offset_bounds`.
         let new_offset = {
             // If there was some previous scroll state, we must also ensure that our new offset does
             // exceed its `offset_bounds` either. We do this in order to avoid causing jitter when
             // scrolling towards either end of the Range.
-            let new_offset = maybe_prev_scroll_state.as_ref()
+            let new_offset = maybe_prev_scroll_state
+                .as_ref()
                 .map(|prev| prev.offset_bounds.clamp_value(new_offset_unbounded))
                 .unwrap_or(new_offset_unbounded);
             offset_bounds.clamp_value(new_offset)
@@ -221,12 +225,10 @@ impl<A> State<A>
             is_scrolling: additional_offset != 0.0,
         }
     }
-
 }
 
 
 impl Axis for X {
-
     fn parallel_range(rect: Rect) -> Range {
         rect.x
     }
@@ -246,12 +248,10 @@ impl Axis for X {
     fn offset_direction() -> Scalar {
         1.0
     }
-
 }
 
 
 impl Axis for Y {
-
     fn parallel_range(rect: Rect) -> Range {
         rect.y
     }
@@ -271,5 +271,4 @@ impl Axis for Y {
     fn offset_direction() -> Scalar {
         -1.0
     }
-
 }

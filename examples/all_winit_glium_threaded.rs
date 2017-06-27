@@ -1,14 +1,17 @@
 //! This example behaves the same as the `all_winit_glium` example while demonstrating how to run
 //! the `conrod` loop on a separate thread.
 
-#[cfg(all(feature="winit", feature="glium"))] #[macro_use] extern crate conrod;
-#[cfg(all(feature="winit", feature="glium"))] mod support;
+#[cfg(all(feature = "winit", feature = "glium"))]
+#[macro_use]
+extern crate conrod;
+#[cfg(all(feature = "winit", feature = "glium"))]
+mod support;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
     extern crate image;
@@ -46,11 +49,16 @@ mod feature {
 
         // Load the Rust logo from our assets folder to use as an example image.
         fn load_rust_logo(display: &glium::Display) -> glium::texture::Texture2d {
-            let assets = find_folder::Search::ParentsThenKids(3, 3).for_folder("assets").unwrap();
+            let assets = find_folder::Search::ParentsThenKids(3, 3)
+                .for_folder("assets")
+                .unwrap();
             let path = assets.join("images/rust.png");
             let rgba_image = image::open(&std::path::Path::new(&path)).unwrap().to_rgba();
             let image_dimensions = rgba_image.dimensions();
-            let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(rgba_image.into_raw(), image_dimensions);
+            let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(
+                rgba_image.into_raw(),
+                image_dimensions,
+            );
             let texture = glium::texture::Texture2d::new(display, raw_image).unwrap();
             texture
         }
@@ -66,16 +74,21 @@ mod feature {
         let window_proxy = display.get_window().unwrap().create_window_proxy();
 
         // A function that runs the conrod loop.
-        fn run_conrod(rust_logo: conrod::image::Id,
-                      event_rx: std::sync::mpsc::Receiver<conrod::event::Input>,
-                      render_tx: std::sync::mpsc::Sender<conrod::render::OwnedPrimitives>,
-                      window_proxy: glium::glutin::WindowProxy)
-        {
+        fn run_conrod(
+            rust_logo: conrod::image::Id,
+            event_rx: std::sync::mpsc::Receiver<conrod::event::Input>,
+            render_tx: std::sync::mpsc::Sender<conrod::render::OwnedPrimitives>,
+            window_proxy: glium::glutin::WindowProxy,
+        ) {
             // Construct our `Ui`.
-            let mut ui = conrod::UiBuilder::new([WIN_W as f64, WIN_H as f64]).theme(support::theme()).build();
+            let mut ui = conrod::UiBuilder::new([WIN_W as f64, WIN_H as f64])
+                .theme(support::theme())
+                .build();
 
             // Add a `Font` to the `Ui`'s `font::Map` from file.
-            let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+            let assets = find_folder::Search::KidsThenParents(3, 5)
+                .for_folder("assets")
+                .unwrap();
             let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
             ui.fonts.insert_from_file(font_path).unwrap();
 
@@ -128,7 +141,9 @@ mod feature {
         }
 
         // Spawn the conrod loop on its own thread.
-        std::thread::spawn(move || run_conrod(rust_logo, event_rx, render_tx, window_proxy));
+        std::thread::spawn(move || {
+            run_conrod(rust_logo, event_rx, render_tx, window_proxy)
+        });
 
         // Run the `winit` loop.
         let mut last_update = std::time::Instant::now();
@@ -164,7 +179,7 @@ mod feature {
                     glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                     glium::glutin::Event::Closed =>
                         break 'main,
-                    _ => {},
+                    _ => {}
                 }
             }
 
@@ -187,10 +202,12 @@ mod feature {
 
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` and `glium` features. \
-                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` and `glium` features. \
+                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+        );
     }
 }

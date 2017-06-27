@@ -43,7 +43,6 @@ pub struct State {
 
 
 impl<X, Y, F> PlotPath<X, Y, F> {
-
     /// Begin building a new `PlotPath` widget instance.
     pub fn new(min_x: X, max_x: X, min_y: Y, max_y: Y, f: F) -> Self {
         PlotPath {
@@ -56,14 +55,14 @@ impl<X, Y, F> PlotPath<X, Y, F> {
             f: f,
         }
     }
-
 }
 
 
 impl<X, Y, F> Widget for PlotPath<X, Y, F>
-    where X: num::NumCast + Clone,
-          Y: num::NumCast + Clone,
-          F: FnMut(X) -> Y,
+where
+    X: num::NumCast + Clone,
+    Y: num::NumCast + Clone,
+    F: FnMut(X) -> Y,
 {
     type State = State;
     type Style = Style;
@@ -78,9 +77,7 @@ impl<X, Y, F> Widget for PlotPath<X, Y, F>
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -90,22 +87,35 @@ impl<X, Y, F> Widget for PlotPath<X, Y, F>
     /// Update the state of the PlotPath.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
 
-        let widget::UpdateArgs { id, state, style, rect, ui, .. } = args;
-        let PlotPath { min_x, max_x, min_y, max_y, mut f, .. } = self;
+        let widget::UpdateArgs {
+            id,
+            state,
+            style,
+            rect,
+            ui,
+            ..
+        } = args;
+        let PlotPath {
+            min_x,
+            max_x,
+            min_y,
+            max_y,
+            mut f,
+            ..
+        } = self;
 
         let y_to_scalar =
             |y| utils::map_range(y, min_y.clone(), max_y.clone(), rect.bottom(), rect.top());
         let scalar_to_x =
             |s| utils::map_range(s, rect.left(), rect.right(), min_x.clone(), max_x.clone());
 
-        let point_iter = (0 .. rect.w() as usize)
-            .map(|x_scalar| {
-                let x_scalar = x_scalar as Scalar + rect.x.start;
-                let x = scalar_to_x(x_scalar);
-                let y = f(x);
-                let y_scalar = y_to_scalar(y);
-                [x_scalar, y_scalar]
-            });
+        let point_iter = (0..rect.w() as usize).map(|x_scalar| {
+            let x_scalar = x_scalar as Scalar + rect.x.start;
+            let x = scalar_to_x(x_scalar);
+            let y = f(x);
+            let y_scalar = y_to_scalar(y);
+            [x_scalar, y_scalar]
+        });
 
         let thickness = style.thickness(ui.theme());
         let color = style.color(ui.theme());
@@ -118,7 +128,6 @@ impl<X, Y, F> Widget for PlotPath<X, Y, F>
             .graphics_for(id)
             .set(state.ids.point_path, ui);
     }
-
 }
 
 impl<X, Y, F> Colorable for PlotPath<X, Y, F> {

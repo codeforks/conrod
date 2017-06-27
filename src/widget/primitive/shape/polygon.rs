@@ -44,7 +44,6 @@ pub enum Kind {
 
 
 impl<I> Polygon<I> {
-
     /// Build a polygon with the given points and style.
     pub fn styled(points: I, style: Style) -> Self {
         Polygon {
@@ -84,7 +83,8 @@ impl<I> Polygon<I> {
     /// If you would rather centre the points to the middle of the bounding box, use
     /// the [**Polygon::centred**](./struct.Polygon#method.centred) methods instead.
     pub fn abs_styled(points: I, style: Style) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         let points_clone = points.clone().into_iter();
         let (xy, dim) = bounding_box_for_points(points_clone).xy_dim();
@@ -94,7 +94,8 @@ impl<I> Polygon<I> {
     /// The same as [**Polygon::abs_styled**](./struct.Polygon#method.abs_styled) but builds the
     /// **Polygon** with the default **Fill** style.
     pub fn abs_fill(points: I) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         Polygon::abs_styled(points, Style::fill())
     }
@@ -102,7 +103,8 @@ impl<I> Polygon<I> {
     /// The same as [**Polygon::abs_styled**](./struct.Polygon#method.abs_styled) but builds the
     /// **Polygon** **Fill**ed with the given **Color**.
     pub fn abs_fill_with(points: I, color: Color) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         Polygon::abs_styled(points, Style::fill_with(color))
     }
@@ -110,7 +112,8 @@ impl<I> Polygon<I> {
     /// The same as [**Polygon::abs_styled**](./struct.Polygon#method.abs_styled) but builds the
     /// **Polygon** with the default **Outline** style.
     pub fn abs_outline(points: I) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         Polygon::abs_styled(points, Style::outline())
     }
@@ -118,7 +121,8 @@ impl<I> Polygon<I> {
     /// The same as [**Polygon::abs_styled**](./struct.Polygon#method.abs_styled) but builds the
     /// **Polygon** with the given **Outline** styling.
     pub fn abs_outline_styled(points: I, style: widget::line::Style) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         Polygon::abs_styled(points, Style::outline_styled(style))
     }
@@ -132,7 +136,8 @@ impl<I> Polygon<I> {
     /// If you would rather centre the bounding box to the points, use the
     /// [**Polygon::abs**](./struct.Polygon#method.abs) constructor method instead.
     pub fn centred_styled(points: I, style: Style) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         let points_clone = points.clone().into_iter();
         let (xy, dim) = bounding_box_for_points(points_clone).xy_dim();
@@ -144,7 +149,8 @@ impl<I> Polygon<I> {
     /// The same as [**Polygon::centred_styled**](./struct.Polygon#method.centred_styled) but
     /// constructs the **Polygon** with the default **Fill** style.
     pub fn centred_fill(points: I) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         Polygon::centred_styled(points, Style::fill())
     }
@@ -152,7 +158,8 @@ impl<I> Polygon<I> {
     /// The same as [**Polygon::centred_styled**](./struct.Polygon#method.centred_styled) but
     /// constructs the **Polygon** **Fill**ed with the given color.
     pub fn centred_fill_with(points: I, color: Color) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         Polygon::centred_styled(points, Style::fill_with(color))
     }
@@ -160,7 +167,8 @@ impl<I> Polygon<I> {
     /// The same as [**Polygon::centred_styled**](./struct.Polygon#method.centred_styled) but
     /// constructs the **Polygon** with the default **Outline** style.
     pub fn centred_outline(points: I) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         Polygon::centred_styled(points, Style::outline())
     }
@@ -168,16 +176,17 @@ impl<I> Polygon<I> {
     /// The same as [**Polygon::centred_styled**](./struct.Polygon#method.centred_styled) but
     /// constructs the **Polygon** **Outline**d with the given styling.
     pub fn centred_outline_styled(points: I, style: widget::line::Style) -> Self
-        where I: IntoIterator<Item=Point> + Clone,
+    where
+        I: IntoIterator<Item = Point> + Clone,
     {
         Polygon::centred_styled(points, Style::outline_styled(style))
     }
-
 }
 
 
 impl<I> Widget for Polygon<I>
-    where I: IntoIterator<Item=Point>,
+where
+    I: IntoIterator<Item = Point>,
 {
     type State = State;
     type Style = Style;
@@ -206,22 +215,31 @@ impl<I> Widget for Polygon<I>
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         use utils::{iter_diff, IterDiff};
         let widget::UpdateArgs { rect, state, style, .. } = args;
-        let Polygon { points, maybe_shift_to_centre_from, .. } = self;
+        let Polygon {
+            points,
+            maybe_shift_to_centre_from,
+            ..
+        } = self;
 
         // A function that compares the given points iterator to the points currently owned by
         // `State` and updates only if necessary.
         fn update_points<I>(state: &mut widget::State<State>, points: I)
-            where I: IntoIterator<Item=Point>,
+        where
+            I: IntoIterator<Item = Point>,
         {
             match iter_diff(&state.points, points) {
-                Some(IterDiff::FirstMismatch(i, mismatch)) => state.update(|state| {
-                    state.points.truncate(i);
-                    state.points.extend(mismatch);
-                }),
-                Some(IterDiff::Longer(remaining)) =>
-                    state.update(|state| state.points.extend(remaining)),
-                Some(IterDiff::Shorter(total)) =>
-                    state.update(|state| state.points.truncate(total)),
+                Some(IterDiff::FirstMismatch(i, mismatch)) => {
+                    state.update(|state| {
+                        state.points.truncate(i);
+                        state.points.extend(mismatch);
+                    })
+                }
+                Some(IterDiff::Longer(remaining)) => {
+                    state.update(|state| state.points.extend(remaining))
+                }
+                Some(IterDiff::Shorter(total)) => {
+                    state.update(|state| state.points.truncate(total))
+                }
                 None => (),
             }
         }
@@ -231,8 +249,11 @@ impl<I> Widget for Polygon<I>
             Some(original) => {
                 let xy = rect.xy();
                 let difference = vec2_sub(xy, original);
-                update_points(state, points.into_iter().map(|point| vec2_add(point, difference)))
-            },
+                update_points(
+                    state,
+                    points.into_iter().map(|point| vec2_add(point, difference)),
+                )
+            }
             None => update_points(state, points),
         }
 
@@ -245,7 +266,6 @@ impl<I> Widget for Polygon<I>
             state.update(|state| state.kind = kind);
         }
     }
-
 }
 
 

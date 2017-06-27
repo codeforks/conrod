@@ -14,15 +14,18 @@ use widget;
 /// Useful for things such as oscillator/automation envelopes or any value series represented
 /// periodically.
 pub struct EnvelopeEditor<'a, E>
-    where E: EnvelopePoint + 'a,
+where
+    E: EnvelopePoint + 'a,
 {
     common: widget::CommonBuilder,
     env: &'a [E],
     /// The value skewing for the envelope's y-axis. This is useful for displaying exponential
     /// ranges such as frequency.
     pub skew_y_range: f32,
-    min_x: E::X, max_x: E::X,
-    min_y: E::Y, max_y: E::Y,
+    min_x: E::X,
+    max_x: E::X,
+    min_y: E::Y,
+    max_y: E::Y,
     maybe_label: Option<&'a str>,
     style: Style,
     enabled: bool,
@@ -85,7 +88,9 @@ pub trait EnvelopePoint: Clone + PartialEq {
     /// Set the Y value.
     fn set_y(&mut self, _y: Self::Y);
     /// Return the bezier curve depth (-1. to 1.) for the next interpolation.
-    fn get_curve(&self) -> f32 { 1.0 }
+    fn get_curve(&self) -> f32 {
+        1.0
+    }
     /// Set the bezier curve depth (-1. to 1.) for the next interpolation.
     fn set_curve(&mut self, _curve: f32) {}
     /// Create a new EnvPoint.
@@ -96,30 +101,42 @@ impl EnvelopePoint for Point {
     type X = Scalar;
     type Y = Scalar;
     /// Return the X value.
-    fn get_x(&self) -> Scalar { self[0] }
+    fn get_x(&self) -> Scalar {
+        self[0]
+    }
     /// Return the Y value.
-    fn get_y(&self) -> Scalar { self[1] }
+    fn get_y(&self) -> Scalar {
+        self[1]
+    }
     /// Return the X value.
-    fn set_x(&mut self, x: Scalar) { self[0] = x }
+    fn set_x(&mut self, x: Scalar) {
+        self[0] = x
+    }
     /// Return the Y value.
-    fn set_y(&mut self, y: Scalar) { self[1] = y }
+    fn set_y(&mut self, y: Scalar) {
+        self[1] = y
+    }
     /// Create a new Envelope Point.
-    fn new(x: Scalar, y: Scalar) -> Point { [x, y] }
+    fn new(x: Scalar, y: Scalar) -> Point {
+        [x, y]
+    }
 }
 
 
 impl<'a, E> EnvelopeEditor<'a, E>
-    where E: EnvelopePoint,
+where
+    E: EnvelopePoint,
 {
-
     /// Construct an EnvelopeEditor widget.
     pub fn new(env: &'a [E], min_x: E::X, max_x: E::X, min_y: E::Y, max_y: E::Y) -> Self {
         EnvelopeEditor {
             common: widget::CommonBuilder::new(),
             env: env,
             skew_y_range: 1.0, // Default skew amount (no skew).
-            min_x: min_x, max_x: max_x,
-            min_y: min_y, max_y: max_y,
+            min_x: min_x,
+            max_x: max_x,
+            min_y: min_y,
+            max_y: max_y,
             maybe_label: None,
             style: Style::new(),
             enabled: true,
@@ -139,14 +156,14 @@ impl<'a, E> EnvelopeEditor<'a, E>
         pub skew_y { skew_y_range = f32 }
         pub enabled { enabled = bool }
     }
-
 }
 
 
 /// The kinds of events that may be yielded by the `EnvelopeEditor`.
 #[derive(Copy, Clone, Debug)]
 pub enum Event<E>
-    where E: EnvelopePoint,
+where
+    E: EnvelopePoint,
 {
     /// Insert a new point.
     AddPoint {
@@ -173,9 +190,9 @@ pub enum Event<E>
 
 
 impl<E> Event<E>
-    where E: EnvelopePoint,
+where
+    E: EnvelopePoint,
 {
-
     /// Update the given `envelope` in accordance with the `Event`.
     pub fn update(self, envelope: &mut Vec<E>) {
         match self {
@@ -184,20 +201,30 @@ impl<E> Event<E>
                 if i <= envelope.len() {
                     envelope.insert(i, point);
                 }
-            },
+            }
 
             Event::RemovePoint { i } => {
                 if i < envelope.len() {
                     envelope.remove(i);
                 }
-            },
+            }
 
             Event::MovePoint { i, x, y } => {
-                let maybe_left = if i == 0 { None } else { envelope.get(i - 1).map(|p| p.get_x()) };
+                let maybe_left = if i == 0 {
+                    None
+                } else {
+                    envelope.get(i - 1).map(|p| p.get_x())
+                };
                 let maybe_right = envelope.get(i + 1).map(|p| p.get_x());
                 if let Some(p) = envelope.get_mut(i) {
                     let mut set_clamped = |min_x, max_x| {
-                        let x = if x < min_x { min_x } else if x > max_x { max_x } else { x };
+                        let x = if x < min_x {
+                            min_x
+                        } else if x > max_x {
+                            max_x
+                        } else {
+                            x
+                        };
                         p.set_x(x);
                         p.set_y(y);
                     };
@@ -208,16 +235,16 @@ impl<E> Event<E>
                         (Some(min), Some(max)) => set_clamped(min, max),
                     }
                 }
-            },
+            }
 
         }
     }
-
 }
 
 
 impl<'a, E> Widget for EnvelopeEditor<'a, E>
-    where E: EnvelopePoint,
+where
+    E: EnvelopePoint,
 {
     type State = State;
     type Style = Style;
@@ -245,12 +272,21 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
     /// Update the `EnvelopeEditor` in accordance to the latest input and call the given `react`
     /// function if necessary.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, rect, style, mut ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            style,
+            mut ui,
+            ..
+        } = args;
         let EnvelopeEditor {
             env,
             skew_y_range,
-            min_x, max_x,
-            min_y, max_y,
+            min_x,
+            max_x,
+            min_y,
+            max_y,
             maybe_label,
             ..
         } = self;
@@ -285,8 +321,16 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
         // Determine the left and right X bounds for a point.
         let get_x_bounds = |env: &[E], idx: usize| -> (E::X, E::X) {
             let len = env.len();
-            let right_bound = if len > 0 && len - 1 > idx { env[idx + 1].get_x() } else { max_x };
-            let left_bound = if len > 0 && idx > 0 { env[idx - 1].get_x() } else { min_x };
+            let right_bound = if len > 0 && len - 1 > idx {
+                env[idx + 1].get_x()
+            } else {
+                max_x
+            };
+            let left_bound = if len > 0 && idx > 0 {
+                env[idx - 1].get_x()
+            } else {
+                min_x
+            };
             (left_bound, right_bound)
         };
 
@@ -297,8 +341,7 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
                 let py = env[i].get_y();
                 let x = map_x_to(px, inner_rel_rect.left(), inner_rel_rect.right());
                 let y = map_y_to(py, inner_rel_rect.bottom(), inner_rel_rect.top());
-                let distance = (xy[0] - x).powf(2.0)
-                             + (xy[1] - y).powf(2.0);
+                let distance = (xy[0] - x).powf(2.0) + (xy[1] - y).powf(2.0);
                 if distance <= point_radius.powf(2.0) {
                     return Some(i);
                 }
@@ -327,116 +370,136 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
                 // - Point insertion
                 // - Point removal
                 // - The beggining of a point drag
-                event::Widget::Press(press) => match press.button {
+                event::Widget::Press(press) => {
+                    match press.button {
 
-                    // Left mouse press:
-                    //
-                    // If the mouse is currently over an existing point, we want to begin
-                    // dragging it.
-                    //
-                    // Otherwise, if the mouse is not over an existing point, we want to insert
-                    // a new point and begin dragging it.
-                    event::Button::Mouse(MouseButton::Left, xy) => {
+                        // Left mouse press:
+                        //
+                        // If the mouse is currently over an existing point, we want to begin
+                        // dragging it.
+                        //
+                        // Otherwise, if the mouse is not over an existing point, we want to insert
+                        // a new point and begin dragging it.
+                        event::Button::Mouse(MouseButton::Left, xy) => {
 
-                        // In this loop, we find the points on either side of the mouse to
-                        // determine the insertion index, while checking if we need to break early
-                        // in the case that the mouse is already over a point.
-                        let mut maybe_left = None;
-                        let mut maybe_right = None;
-                        for (i, p) in env.iter().enumerate() {
-                            let px = p.get_x();
-                            let py = p.get_y();
-                            let x = map_x_to(px, inner_rel_rect.left(), inner_rel_rect.right());
-                            let y = map_y_to(py, inner_rel_rect.bottom(), inner_rel_rect.top());
-                            let distance = (xy[0] - x).powf(2.0)
-                                         + (xy[1] - y).powf(2.0);
+                            // In this loop, we find the points on either side of the mouse to
+                            // determine the insertion index, while checking if we need to break early
+                            // in the case that the mouse is already over a point.
+                            let mut maybe_left = None;
+                            let mut maybe_right = None;
+                            for (i, p) in env.iter().enumerate() {
+                                let px = p.get_x();
+                                let py = p.get_y();
+                                let x = map_x_to(px, inner_rel_rect.left(), inner_rel_rect.right());
+                                let y = map_y_to(py, inner_rel_rect.bottom(), inner_rel_rect.top());
+                                let distance = (xy[0] - x).powf(2.0) + (xy[1] - y).powf(2.0);
 
-                            // If the press was over a point, begin dragging it and we're done.
-                            if distance <= point_radius.powf(2.0) {
-                                pressed_point = Some(i);
+                                // If the press was over a point, begin dragging it and we're done.
+                                if distance <= point_radius.powf(2.0) {
+                                    pressed_point = Some(i);
+                                    continue 'events;
+                                }
+
+                                if x <= xy[0] {
+                                    maybe_left = Some(i);
+                                } else if maybe_right.is_none() {
+                                    maybe_right = Some(i);
+                                    break;
+                                }
+                            }
+
+                            // We only want to insert a point if the mouse is in the inner rectangle
+                            // and not on the border.
+                            if !inner_rel_rect.is_over(xy) {
                                 continue 'events;
                             }
 
-                            if x <= xy[0] {
-                                maybe_left = Some(i);
-                            } else if maybe_right.is_none() {
-                                maybe_right = Some(i);
-                                break;
+                            let new_x =
+                                map_to_x(xy[0], inner_rel_rect.left(), inner_rel_rect.right());
+                            let new_y =
+                                map_to_y(xy[1], inner_rel_rect.bottom(), inner_rel_rect.top());
+                            let new_point = EnvelopePoint::new(new_x, new_y);
+
+                            // Insert the point and push an `AddPoint` event.
+                            match (maybe_left, maybe_right) {
+                                (Some(_), None) | (None, None) => {
+                                    let idx = env.len();
+                                    let event = Event::AddPoint {
+                                        i: idx,
+                                        point: new_point,
+                                    };
+                                    pressed_point = Some(idx);
+                                    events.push(event);
+                                }
+                                (None, Some(_)) => {
+                                    let idx = 0;
+                                    let event = Event::AddPoint {
+                                        i: idx,
+                                        point: new_point,
+                                    };
+                                    pressed_point = Some(idx);
+                                    events.push(event);
+                                }
+                                (Some(_), Some(idx)) => {
+                                    let event = Event::AddPoint {
+                                        i: idx,
+                                        point: new_point,
+                                    };
+                                    pressed_point = Some(idx);
+                                    events.push(event);
+                                }
                             }
                         }
 
-                        // We only want to insert a point if the mouse is in the inner rectangle
-                        // and not on the border.
-                        if !inner_rel_rect.is_over(xy) {
-                            continue 'events;
-                        }
+                        // If the right mouse button was pressed over a point that is not currently
+                        // being dragged, remove the point.
+                        event::Button::Mouse(MouseButton::Right, xy) => {
+                            if pressed_point.is_some() || !inner_rel_rect.is_over(xy) {
+                                continue 'events;
+                            }
 
-                        let new_x = map_to_x(xy[0], inner_rel_rect.left(), inner_rel_rect.right());
-                        let new_y = map_to_y(xy[1], inner_rel_rect.bottom(), inner_rel_rect.top());
-                        let new_point = EnvelopePoint::new(new_x, new_y);
-
-                        // Insert the point and push an `AddPoint` event.
-                        match (maybe_left, maybe_right) {
-                            (Some(_), None) | (None, None) => {
-                                let idx = env.len();
-                                let event = Event::AddPoint { i: idx, point: new_point };
-                                pressed_point = Some(idx);
+                            if let Some(idx) = point_under_rel_xy(&env, xy) {
+                                let event = Event::RemovePoint { i: idx };
                                 events.push(event);
-                            },
-                            (None, Some(_)) => {
-                                let idx = 0;
-                                let event = Event::AddPoint { i: idx, point: new_point };
-                                pressed_point = Some(idx);
-                                events.push(event);
-                            },
-                            (Some(_), Some(idx)) => {
-                                let event = Event::AddPoint { i: idx, point: new_point };
-                                pressed_point = Some(idx);
-                                events.push(event);
-                            },
-                        }
-                    },
-
-                    // If the right mouse button was pressed over a point that is not currently
-                    // being dragged, remove the point.
-                    event::Button::Mouse(MouseButton::Right, xy) => {
-                        if pressed_point.is_some() || !inner_rel_rect.is_over(xy) {
-                            continue 'events;
+                            }
                         }
 
-                        if let Some(idx) = point_under_rel_xy(&env, xy) {
-                            let event = Event::RemovePoint { i: idx };
-                            events.push(event);
-                        }
-                    },
-
-                    _ => (),
-                },
+                        _ => (),
+                    }
+                }
 
                 // Check to see if a point was released in case it is later dragged.
                 event::Widget::Release(release) => {
                     if let event::Button::Mouse(MouseButton::Left, _) = release.button {
                         pressed_point = None;
                     }
-                },
+                }
 
                 // A left `Drag` moves the `pressed_point` if there is one.
                 event::Widget::Drag(drag) if drag.button == input::MouseButton::Left => {
                     if let Some(idx) = pressed_point {
                         let drag_to_x_clamped = inner_rel_rect.x.clamp_value(drag.to[0]);
                         let drag_to_y_clamped = inner_rel_rect.y.clamp_value(drag.to[1]);
-                        let unbounded_x = map_to_x(drag_to_x_clamped,
-                                                   inner_rel_rect.left(),
-                                                   inner_rel_rect.right());
+                        let unbounded_x = map_to_x(
+                            drag_to_x_clamped,
+                            inner_rel_rect.left(),
+                            inner_rel_rect.right(),
+                        );
                         let (left_bound, right_bound) = get_x_bounds(&env, idx);
                         let new_x = clamp(unbounded_x, left_bound, right_bound);
-                        let new_y = map_to_y(drag_to_y_clamped,
-                                             inner_rel_rect.bottom(),
-                                             inner_rel_rect.top());
-                        let event = Event::MovePoint { i: idx, x: new_x, y: new_y };
+                        let new_y = map_to_y(
+                            drag_to_y_clamped,
+                            inner_rel_rect.bottom(),
+                            inner_rel_rect.top(),
+                        );
+                        let event = Event::MovePoint {
+                            i: idx,
+                            x: new_x,
+                            y: new_y,
+                        };
                         events.push(event);
                     }
-                },
+                }
 
                 _ => (),
             }
@@ -455,9 +518,13 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
         let dim = rect.dim();
         let border = style.border(ui.theme());
         let color = style.color(ui.theme());
-        let color = ui.widget_input(id).mouse()
-            .and_then(|m| if inner_rect.is_over(m.abs_xy()) { Some(color.highlighted()) }
-                          else { None })
+        let color = ui.widget_input(id)
+            .mouse()
+            .and_then(|m| if inner_rect.is_over(m.abs_xy()) {
+                Some(color.highlighted())
+            } else {
+                None
+            })
             .unwrap_or(color);
         let border_color = style.border_color(ui.theme());
         widget::BorderedRectangle::new(dim)
@@ -501,7 +568,12 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
 
         // Ensure we have at least as many point widgets as there are points in the env.
         if state.ids.points.len() < env.len() {
-            state.update(|state| state.ids.points.resize(env.len(), &mut ui.widget_id_generator()));
+            state.update(|state| {
+                state.ids.points.resize(
+                    env.len(),
+                    &mut ui.widget_id_generator(),
+                )
+            });
         }
 
         let iter = state.ids.points.iter().zip(env.iter()).enumerate();
@@ -511,11 +583,12 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
             let point_color = if state.pressed_point == Some(i) {
                 line_color.clicked()
             } else {
-                ui.widget_input(id).mouse()
+                ui.widget_input(id)
+                    .mouse()
                     .and_then(|mouse| {
                         let mouse_abs_xy = mouse.abs_xy();
-                        let distance = (mouse_abs_xy[0] - x).powf(2.0)
-                                     + (mouse_abs_xy[1] - y).powf(2.0);
+                        let distance = (mouse_abs_xy[0] - x).powf(2.0) +
+                            (mouse_abs_xy[1] - y).powf(2.0);
                         if distance <= point_radius.powf(2.0) {
                             Some(line_color.highlighted())
                         } else {
@@ -542,8 +615,7 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
                 let x = map_x_to(px, inner_rect.left(), inner_rect.right());
                 let y = map_y_to(py, inner_rect.bottom(), inner_rect.top());
                 let mouse_abs_xy = mouse.abs_xy();
-                let distance = (mouse_abs_xy[0] - x).powf(2.0)
-                             + (mouse_abs_xy[1] - y).powf(2.0);
+                let distance = (mouse_abs_xy[0] - x).powf(2.0) + (mouse_abs_xy[1] - y).powf(2.0);
                 if distance < closest_distance {
                     closest_distance = distance;
                     closest_point = Some((i, (x, y)));
@@ -584,18 +656,19 @@ impl<'a, E> Widget for EnvelopeEditor<'a, E>
 
         events
     }
-
 }
 
 
 impl<'a, E> Colorable for EnvelopeEditor<'a, E>
-    where E: EnvelopePoint
+where
+    E: EnvelopePoint,
 {
     builder_method!(color { style.color = Some(Color) });
 }
 
 impl<'a, E> Borderable for EnvelopeEditor<'a, E>
-    where E: EnvelopePoint
+where
+    E: EnvelopePoint,
 {
     builder_methods!{
         border { style.border = Some(Scalar) }
@@ -604,7 +677,8 @@ impl<'a, E> Borderable for EnvelopeEditor<'a, E>
 }
 
 impl<'a, E> Labelable<'a> for EnvelopeEditor<'a, E>
-    where E: EnvelopePoint
+where
+    E: EnvelopePoint,
 {
     builder_methods!{
         label { maybe_label = Some(&'a str) }

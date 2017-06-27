@@ -1,15 +1,6 @@
 //! A button that allows for toggling boolean state.
 
-use {
-    Color,
-    Colorable,
-    FontSize,
-    Borderable,
-    Labelable,
-    Positionable,
-    Scalar,
-    Widget,
-};
+use {Color, Colorable, FontSize, Borderable, Labelable, Positionable, Scalar, Widget};
 use position::{self, Align};
 use text;
 use widget;
@@ -93,7 +84,6 @@ impl Iterator for TimesClicked {
 
 
 impl<'a> Toggle<'a> {
-
     /// Construct a new Toggle widget.
     pub fn new(value: bool) -> Toggle<'a> {
         Toggle {
@@ -126,7 +116,6 @@ impl<'a> Toggle<'a> {
     builder_methods!{
         pub enabled { enabled = bool }
     }
-
 }
 
 impl<'a> Widget for Toggle<'a> {
@@ -143,9 +132,7 @@ impl<'a> Widget for Toggle<'a> {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -154,15 +141,29 @@ impl<'a> Widget for Toggle<'a> {
 
     /// Update the state of the Toggle.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, style, rect, mut ui, .. } = args;
-        let Toggle { value, enabled, maybe_label, .. } = self;
+        let widget::UpdateArgs {
+            id,
+            state,
+            style,
+            rect,
+            mut ui,
+            ..
+        } = args;
+        let Toggle {
+            value,
+            enabled,
+            maybe_label,
+            ..
+        } = self;
 
         let times_clicked = TimesClicked {
             state: value,
             count: if enabled {
                 let input = ui.widget_input(id);
                 (input.clicks().left().count() + input.taps().count()) as u16
-            } else { 0 },
+            } else {
+                0
+            },
         };
 
         // BorderedRectangle widget.
@@ -171,11 +172,19 @@ impl<'a> Widget for Toggle<'a> {
         let color = {
             let color = style.color(ui.theme());
             let new_value = times_clicked.clone().last().unwrap_or(value);
-            let color = if new_value { color } else { color.with_luminance(0.1) };
+            let color = if new_value {
+                color
+            } else {
+                color.with_luminance(0.1)
+            };
             match ui.widget_input(id).mouse() {
-                Some(mouse) =>
-                    if mouse.buttons.left().is_down() { color.clicked() }
-                    else { color.highlighted() },
+                Some(mouse) => {
+                    if mouse.buttons.left().is_down() {
+                        color.clicked()
+                    } else {
+                        color.highlighted()
+                    }
+                }
                 None => color,
             }
         };

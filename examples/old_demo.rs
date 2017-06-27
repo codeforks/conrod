@@ -7,14 +7,17 @@
 //! check the current `Theme` within the `Ui` and retrieve defaults from there.
 //!
 
-#[cfg(all(feature="winit", feature="glium"))] #[macro_use] extern crate conrod;
-#[cfg(all(feature="winit", feature="glium"))] mod support;
+#[cfg(all(feature = "winit", feature = "glium"))]
+#[macro_use]
+extern crate conrod;
+#[cfg(all(feature = "winit", feature = "glium"))]
+mod support;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
     extern crate rand; // for making a random color.
@@ -60,7 +63,6 @@ mod feature {
     }
 
     impl DemoApp {
-
         /// Constructor for the Demonstration Application model.
         fn new() -> DemoApp {
             DemoApp {
@@ -70,34 +72,44 @@ mod feature {
                 title_pad: 350.0,
                 v_slider_height: 230.0,
                 border_width: 1.0,
-                bool_matrix: [ [true, true, true, true, true, true, true, true],
-                               [true, false, false, false, false, false, false, true],
-                               [true, false, true, false, true, true, true, true],
-                               [true, false, true, false, true, true, true, true],
-                               [true, false, false, false, true, true, true, true],
-                               [true, true, true, true, true, true, true, true],
-                               [true, true, false, true, false, false, false, true],
-                               [true, true, true, true, true, true, true, true] ],
-                ddl_colors: vec!["Black".to_string(),
-                                  "White".to_string(),
-                                  "Red".to_string(),
-                                  "Green".to_string(),
-                                  "Blue".to_string()],
+                bool_matrix: [
+                    [true, true, true, true, true, true, true, true],
+                    [true, false, false, false, false, false, false, true],
+                    [true, false, true, false, true, true, true, true],
+                    [true, false, true, false, true, true, true, true],
+                    [true, false, false, false, true, true, true, true],
+                    [true, true, true, true, true, true, true, true],
+                    [true, true, false, true, false, false, false, true],
+                    [true, true, true, true, true, true, true, true],
+                ],
+                ddl_colors: vec![
+                    "Black".to_string(),
+                    "White".to_string(),
+                    "Red".to_string(),
+                    "Green".to_string(),
+                    "Blue".to_string(),
+                ],
                 ddl_color: conrod::color::PURPLE,
                 selected_idx: None,
                 circle_pos: [-50.0, 110.0],
-                envelopes: vec![(vec![ [0.0, 0.0],
-                                       [0.1, 17000.0],
-                                       [0.25, 8000.0],
-                                       [0.5, 2000.0],
-                                       [1.0, 0.0], ], "Envelope A".to_string()),
-                                (vec![ [0.0, 0.85],
-                                       [0.3, 0.2],
-                                       [0.6, 0.6],
-                                       [1.0, 0.0], ], "Envelope B".to_string())],
+                envelopes: vec![
+                    (
+                        vec![
+                            [0.0, 0.0],
+                            [0.1, 17000.0],
+                            [0.25, 8000.0],
+                            [0.5, 2000.0],
+                            [1.0, 0.0],
+                        ],
+                        "Envelope A".to_string()
+                    ),
+                    (
+                        vec![[0.0, 0.85], [0.3, 0.2], [0.6, 0.6], [1.0, 0.0]],
+                        "Envelope B".to_string()
+                    ),
+                ],
             }
         }
-
     }
 
 
@@ -121,7 +133,9 @@ mod feature {
         let mut ids = Ids::new(ui.widget_id_generator());
 
         // Add a `Font` to the `Ui`'s `font::Map` from file.
-        let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+            .for_folder("assets")
+            .unwrap();
         let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
         ui.fonts.insert_from_file(font_path).unwrap();
 
@@ -153,7 +167,7 @@ mod feature {
                     glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                     glium::glutin::Event::Closed =>
                         break 'main,
-                    _ => {},
+                    _ => {}
                 }
             }
 
@@ -214,7 +228,8 @@ mod feature {
     /// allocations by updating the pre-existing cached state. A new graphical `Element` is only
     /// retrieved from a `Widget` in the case that it's `State` has changed in some way.
     fn set_widgets(ui: &mut conrod::UiCell, app: &mut DemoApp, ids: &mut Ids) {
-        use conrod::{color, widget, Colorable, Borderable, Labelable, Positionable, Sizeable, Widget};
+        use conrod::{color, widget, Colorable, Borderable, Labelable, Positionable, Sizeable,
+                     Widget};
 
         // We can use this `Canvas` as a parent Widget upon which we can place other widgets.
         widget::Canvas::new()
@@ -223,8 +238,14 @@ mod feature {
             .color(app.bg_color)
             .scroll_kids()
             .set(ids.canvas, ui);
-        widget::Scrollbar::x_axis(ids.canvas).auto_hide(true).set(ids.canvas_y_scrollbar, ui);
-        widget::Scrollbar::y_axis(ids.canvas).auto_hide(true).set(ids.canvas_x_scrollbar, ui);
+        widget::Scrollbar::x_axis(ids.canvas).auto_hide(true).set(
+            ids.canvas_y_scrollbar,
+            ui,
+        );
+        widget::Scrollbar::y_axis(ids.canvas).auto_hide(true).set(
+            ids.canvas_x_scrollbar,
+            ui,
+        );
 
         // Text example.
         widget::Text::new("Widget Demonstration")
@@ -250,7 +271,6 @@ mod feature {
             }
 
         }
-
         // Horizontal slider example.
         else {
 
@@ -274,7 +294,11 @@ mod feature {
         }
 
         // Keep track of the currently shown widget.
-        let shown_widget = if app.show_button { ids.button } else { ids.title_pad_slider };
+        let shown_widget = if app.show_button {
+            ids.button
+        } else {
+            ids.title_pad_slider
+        };
 
         // Toggle widget example.
         if let Some(value) = widget::Toggle::new(app.show_button)
@@ -290,7 +314,7 @@ mod feature {
             app.show_button = value;
             app.toggle_label = match value {
                 true => "ON".to_string(),
-                false => "OFF".to_string()
+                false => "OFF".to_string(),
             }
         }
 
@@ -313,8 +337,20 @@ mod feature {
         }
 
         color_slider!(red_slider, red, color::rgb(0.75, 0.3, 0.3), set_red, down);
-        color_slider!(green_slider, green, color::rgb(0.3, 0.75, 0.3), set_green, right);
-        color_slider!(blue_slider, blue, color::rgb(0.3, 0.3, 0.75), set_blue, right);
+        color_slider!(
+            green_slider,
+            green,
+            color::rgb(0.3, 0.75, 0.3),
+            set_green,
+            right
+        );
+        color_slider!(
+            blue_slider,
+            blue,
+            color::rgb(0.3, 0.3, 0.75),
+            set_blue,
+            right
+        );
 
         // Number Dialer widget example. (value, min, max, precision)
         for new_height in widget::NumberDialer::new(app.v_slider_height, 25.0, 250.0, 1)
@@ -359,7 +395,7 @@ mod feature {
                 0.5 + (elem.col as f32 / cols as f32) / 2.0,
                 0.75,
                 1.0 - (elem.row as f32 / rows as f32) / 2.0,
-                1.0
+                1.0,
             );
 
             // We can use `Element`s to instantiate any kind of widget we like.
@@ -390,10 +426,10 @@ mod feature {
             app.ddl_color = match &app.ddl_colors[selected_idx][..] {
                 "Black" => color::BLACK,
                 "White" => color::WHITE,
-                "Red"   => color::RED,
+                "Red" => color::RED,
                 "Green" => color::GREEN,
-                "Blue"  => color::BLUE,
-                _       => color::PURPLE,
+                "Blue" => color::BLUE,
+                _ => color::PURPLE,
             }
         }
 
@@ -468,10 +504,12 @@ mod feature {
     }
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` and `glium` features. \
-                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` and `glium` features. \
+                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+        );
     }
 }

@@ -16,7 +16,8 @@ extern crate rand;
 use conrod;
 use std;
 
-#[cfg(feature="glium")] use conrod::backend::glium::glium;
+#[cfg(feature = "glium")]
+use conrod::backend::glium::glium;
 
 
 pub const WIN_W: u32 = 600;
@@ -33,7 +34,6 @@ pub struct DemoApp {
 
 
 impl DemoApp {
-
     /// Simple constructor for the `DemoApp`.
     pub fn new(rust_logo: conrod::image::Id) -> Self {
         DemoApp {
@@ -43,7 +43,6 @@ impl DemoApp {
             rust_logo: rust_logo,
         }
     }
-
 }
 
 
@@ -134,7 +133,10 @@ pub fn gui(ui: &mut conrod::UiCell, ids: &Ids, app: &mut DemoApp) {
     // By default, its size is the size of the window. We'll use this as a background for the
     // following widgets, as well as a scrollable container for the children widgets.
     const TITLE: &'static str = "All Widgets";
-    widget::Canvas::new().pad(MARGIN).scroll_kids_vertically().set(ids.canvas, ui);
+    widget::Canvas::new()
+        .pad(MARGIN)
+        .scroll_kids_vertically()
+        .set(ids.canvas, ui);
 
 
     ////////////////
@@ -144,10 +146,12 @@ pub fn gui(ui: &mut conrod::UiCell, ids: &Ids, app: &mut DemoApp) {
 
     // We'll demonstrate the `Text` primitive widget by using it to draw a title and an
     // introduction to the example.
-    widget::Text::new(TITLE).font_size(TITLE_SIZE).mid_top_of(ids.canvas).set(ids.title, ui);
+    widget::Text::new(TITLE)
+        .font_size(TITLE_SIZE)
+        .mid_top_of(ids.canvas)
+        .set(ids.title, ui);
 
-    const INTRODUCTION: &'static str =
-        "This example aims to demonstrate all widgets that are provided by conrod.\
+    const INTRODUCTION: &'static str = "This example aims to demonstrate all widgets that are provided by conrod.\
         \n\nThe widget that you are currently looking at is the Text widget. The Text widget \
         is one of several special \"primitive\" widget types which are used to construct \
         all other widget types. These types are \"special\" in the sense that conrod knows \
@@ -184,10 +188,12 @@ pub fn gui(ui: &mut conrod::UiCell, ids: &Ids, app: &mut DemoApp) {
         .h(360.0)
         .color(conrod::color::TRANSPARENT)
         .pad(MARGIN)
-        .flow_down(&[
-            (ids.shapes_left_col, widget::Canvas::new()),
-            (ids.shapes_right_col, widget::Canvas::new()),
-        ])
+        .flow_down(
+            &[
+                (ids.shapes_left_col, widget::Canvas::new()),
+                (ids.shapes_right_col, widget::Canvas::new()),
+            ],
+        )
         .set(ids.shapes_canvas, ui);
 
     let shapes_canvas_rect = ui.rect_of(ids.shapes_canvas).unwrap();
@@ -201,30 +207,51 @@ pub fn gui(ui: &mut conrod::UiCell, ids: &Ids, app: &mut DemoApp) {
 
     let start = [-40.0, -40.0];
     let end = [40.0, 40.0];
-    widget::Line::centred(start, end).mid_left_of(ids.shapes_left_col).set(ids.line, ui);
+    widget::Line::centred(start, end)
+        .mid_left_of(ids.shapes_left_col)
+        .set(ids.line, ui);
 
     let left = [-40.0, -40.0];
     let top = [0.0, 40.0];
     let right = [40.0, -40.0];
     let points = once(left).chain(once(top)).chain(once(right));
-    widget::PointPath::centred(points).right(SHAPE_GAP).set(ids.point_path, ui);
+    widget::PointPath::centred(points).right(SHAPE_GAP).set(
+        ids.point_path,
+        ui,
+    );
 
-    widget::Rectangle::fill([80.0, 80.0]).right(SHAPE_GAP).set(ids.rectangle_fill, ui);
+    widget::Rectangle::fill([80.0, 80.0]).right(SHAPE_GAP).set(
+        ids.rectangle_fill,
+        ui,
+    );
 
-    widget::Rectangle::outline([80.0, 80.0]).right(SHAPE_GAP).set(ids.rectangle_outline, ui);
+    widget::Rectangle::outline([80.0, 80.0])
+        .right(SHAPE_GAP)
+        .set(ids.rectangle_outline, ui);
 
     let bl = [-40.0, -40.0];
     let tl = [-20.0, 40.0];
     let tr = [20.0, 40.0];
     let br = [40.0, -40.0];
     let points = once(bl).chain(once(tl)).chain(once(tr)).chain(once(br));
-    widget::Polygon::centred_fill(points).mid_left_of(ids.shapes_right_col).set(ids.trapezoid, ui);
+    widget::Polygon::centred_fill(points)
+        .mid_left_of(ids.shapes_right_col)
+        .set(ids.trapezoid, ui);
 
-    widget::Oval::fill([40.0, 80.0]).right(SHAPE_GAP + 20.0).align_middle_y().set(ids.oval_fill, ui);
+    widget::Oval::fill([40.0, 80.0])
+        .right(SHAPE_GAP + 20.0)
+        .align_middle_y()
+        .set(ids.oval_fill, ui);
 
-    widget::Oval::outline([80.0, 40.0]).right(SHAPE_GAP + 20.0).align_middle_y().set(ids.oval_outline, ui);
+    widget::Oval::outline([80.0, 40.0])
+        .right(SHAPE_GAP + 20.0)
+        .align_middle_y()
+        .set(ids.oval_outline, ui);
 
-    widget::Circle::fill(40.0).right(SHAPE_GAP).align_middle_y().set(ids.circle, ui);
+    widget::Circle::fill(40.0)
+        .right(SHAPE_GAP)
+        .align_middle_y()
+        .set(ids.circle, ui);
 
 
     /////////////////
@@ -277,8 +304,7 @@ pub fn gui(ui: &mut conrod::UiCell, ids: &Ids, app: &mut DemoApp) {
         app.ball_xy = [x, y];
     }
 
-    for (x, y) in widget::XYPad::new(app.ball_xy[0], min_x, max_x,
-                                     app.ball_xy[1], min_y, max_y)
+    for (x, y) in widget::XYPad::new(app.ball_xy[0], min_x, max_x, app.ball_xy[1], min_y, max_y)
         .label("BALL XY")
         .wh_of(ids.button)
         .align_middle_y_of(ids.button)
@@ -293,12 +319,20 @@ pub fn gui(ui: &mut conrod::UiCell, ids: &Ids, app: &mut DemoApp) {
     let label = if is_white { "WHITE" } else { "BLACK" };
     for is_white in widget::Toggle::new(is_white)
         .label(label)
-        .label_color(if is_white { conrod::color::WHITE } else { conrod::color::LIGHT_CHARCOAL })
+        .label_color(if is_white {
+            conrod::color::WHITE
+        } else {
+            conrod::color::LIGHT_CHARCOAL
+        })
         .mid_right_with_margin_on(ids.canvas, MARGIN)
         .align_middle_y_of(ids.button)
         .set(ids.toggle, ui)
     {
-        app.ball_color = if is_white { conrod::color::WHITE } else { conrod::color::BLACK };
+        app.ball_color = if is_white {
+            conrod::color::WHITE
+        } else {
+            conrod::color::BLACK
+        };
     }
 
     let ball_x = app.ball_xy[0];
@@ -352,7 +386,10 @@ pub fn gui(ui: &mut conrod::UiCell, ids: &Ids, app: &mut DemoApp) {
     /////////////////////
 
 
-    widget::Scrollbar::y_axis(ids.canvas).auto_hide(true).set(ids.canvas_scrollbar, ui);
+    widget::Scrollbar::y_axis(ids.canvas).auto_hide(true).set(
+        ids.canvas_scrollbar,
+        ui,
+    );
 
 }
 
@@ -360,18 +397,17 @@ pub fn gui(ui: &mut conrod::UiCell, ids: &Ids, app: &mut DemoApp) {
 /// In most of the examples the `glutin` crate is used for providing the window context and
 /// events while the `glium` crate is used for displaying `conrod::render::Primitives` to the
 /// screen.
-/// 
+///
 /// This `Iterator`-like type simplifies some of the boilerplate involved in setting up a
 /// glutin+glium event loop that works efficiently with conrod.
-#[cfg(feature="glium")]
+#[cfg(feature = "glium")]
 pub struct EventLoop {
     ui_needs_update: bool,
     last_update: std::time::Instant,
 }
 
-#[cfg(feature="glium")]
+#[cfg(feature = "glium")]
 impl EventLoop {
-
     pub fn new() -> Self {
         EventLoop {
             last_update: std::time::Instant::now(),
@@ -413,5 +449,4 @@ impl EventLoop {
     pub fn needs_update(&mut self) {
         self.ui_needs_update = true;
     }
-
 }

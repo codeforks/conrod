@@ -198,7 +198,7 @@ macro_rules! impl_widget_style_retrieval_methods {
 /// ```
 /// #[macro_use]
 /// extern crate conrod;
-/// 
+///
 /// struct MyWidget {
 ///     style: Style,
 ///     // Other necessary fields...
@@ -223,7 +223,7 @@ macro_rules! impl_widget_style_retrieval_methods {
 /// // We can now retrieve the `color` or `label_color` for a `MyWidget` like so:
 /// // let color = my_widget.style.color(&theme);
 /// // let label_color = my_widget.style.label_color(&theme);
-/// 
+///
 /// # fn main() {}
 /// ```
 ///
@@ -262,7 +262,7 @@ macro_rules! impl_widget_style_retrieval_methods {
 ///             label_color: None,
 ///         }
 ///     }
-/// 
+///
 ///     /// Retrieves the value from the `Style`.
 ///     ///
 ///     /// If the `Style`'s field is `None`, falls back to default specified within the `Theme`.

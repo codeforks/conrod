@@ -1,18 +1,7 @@
 //! The `Canvas` widget and related items.
 
-use {
-    Color,
-    Colorable,
-    FontSize,
-    Borderable,
-    Labelable,
-    Positionable,
-    Sizeable,
-    Theme,
-    Ui,
-    UiCell,
-    Widget,
-};
+use {Color, Colorable, FontSize, Borderable, Labelable, Positionable, Sizeable, Theme, Ui, UiCell,
+     Widget};
 use position::{self, Dimensions, Padding, Place, Position, Range, Rect, Scalar};
 use position::Direction::{Forwards, Backwards};
 use text;
@@ -40,7 +29,7 @@ pub struct Canvas<'a> {
     /// The builder data related to the style of the Canvas.
     pub style: Style,
     /// The label for the **Canvas**' **TitleBar** if there is one.
-    pub maybe_title_bar_label: Option<&'a str>, 
+    pub maybe_title_bar_label: Option<&'a str>,
     /// A list of child **Canvas**ses as splits of this **Canvas** flowing in the given direction.
     pub maybe_splits: Option<FlowOfSplits<'a>>,
 }
@@ -125,7 +114,6 @@ pub enum Direction {
 
 
 impl<'a> Canvas<'a> {
-
     /// Construct a new Canvas builder.
     pub fn new() -> Self {
         Canvas {
@@ -188,7 +176,9 @@ impl<'a> Canvas<'a> {
     /// Set the padding for all edges of the area where child widgets will be placed.
     #[inline]
     pub fn pad(self, pad: Scalar) -> Self {
-        self.pad_left(pad).pad_right(pad).pad_bottom(pad).pad_top(pad)
+        self.pad_left(pad).pad_right(pad).pad_bottom(pad).pad_top(
+            pad,
+        )
     }
 
     /// Set the padding of the area where child widgets will be placed.
@@ -205,7 +195,6 @@ impl<'a> Canvas<'a> {
         self.style.title_bar_color = Some(Some(color));
         self
     }
-
 }
 
 
@@ -223,9 +212,7 @@ impl<'a> Widget for Canvas<'a> {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -273,8 +260,19 @@ impl<'a> Widget for Canvas<'a> {
 
     /// Update the state of the Canvas.
     fn update(self, args: widget::UpdateArgs<Self>) {
-        let widget::UpdateArgs { id, state, rect, mut ui, .. } = args;
-        let Canvas { style, maybe_title_bar_label, maybe_splits, .. } = self;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            mut ui,
+            ..
+        } = args;
+        let Canvas {
+            style,
+            maybe_title_bar_label,
+            maybe_splits,
+            ..
+        } = self;
 
         // BorderedRectangle widget as the rectangle backdrop.
         let dim = rect.dim();
@@ -317,13 +315,15 @@ impl<'a> Widget for Canvas<'a> {
         // If we were given some child canvas splits, we should instantiate them.
         if let Some((direction, splits)) = maybe_splits {
 
-            let (total_abs, total_weight) =
-                splits.iter().fold((0.0, 0.0), |(abs, weight), &(_, split)| {
+            let (total_abs, total_weight) = splits.iter().fold(
+                (0.0, 0.0),
+                |(abs, weight), &(_, split)| {
                     match split.style.length(ui.theme()) {
                         Length::Absolute(a) => (abs + a, weight),
                         Length::Weight(w) => (abs, weight + w),
                     }
-                });
+                },
+            );
 
             // No need to calculate kid_area again, we'll just get it from the graph.
             let kid_area = ui.kid_area_of(id).expect("No KidArea found");
@@ -350,48 +350,59 @@ impl<'a> Widget for Canvas<'a> {
             // Instantiate each of the splits, matching on the direction first for efficiency.
             match direction {
 
-                Direction::X(direction) => match direction {
-                    Forwards => for (i, &(split_id, split)) in splits.iter().enumerate() {
-                        let w = length(&split, &ui);
-                        let split = match i {
-                            0 => split.h(kid_area.h()).mid_left_of(id),
-                            _ => split.right(0.0),
-                        }.w(w);
-                        set_split(split_id, split, &mut ui);
-                    },
-                    Backwards => for (i, &(split_id, split)) in splits.iter().enumerate() {
-                        let w = length(&split, &ui);
-                        let split = match i {
-                            0 => split.h(kid_area.h()).mid_right_of(id),
-                            _ => split.left(0.0),
-                        }.w(w);
-                        set_split(split_id, split, &mut ui);
-                    },
-                },
+                Direction::X(direction) => {
+                    match direction {
+                        Forwards => {
+                            for (i, &(split_id, split)) in splits.iter().enumerate() {
+                                let w = length(&split, &ui);
+                                let split = match i {
+                                    0 => split.h(kid_area.h()).mid_left_of(id),
+                                    _ => split.right(0.0),
+                                }.w(w);
+                                set_split(split_id, split, &mut ui);
+                            }
+                        }
+                        Backwards => {
+                            for (i, &(split_id, split)) in splits.iter().enumerate() {
+                                let w = length(&split, &ui);
+                                let split = match i {
+                                    0 => split.h(kid_area.h()).mid_right_of(id),
+                                    _ => split.left(0.0),
+                                }.w(w);
+                                set_split(split_id, split, &mut ui);
+                            }
+                        }
+                    }
+                }
 
-                Direction::Y(direction) => match direction {
-                    Forwards => for (i, &(split_id, split)) in splits.iter().enumerate() {
-                        let h = length(&split, &ui);
-                        let split = match i {
-                            0 => split.w(kid_area.w()).mid_bottom_of(id),
-                            _ => split.up(0.0),
-                        }.h(h);
-                        set_split(split_id, split, &mut ui);
-                    },
-                    Backwards => for (i, &(split_id, split)) in splits.iter().enumerate() {
-                        let h = length(&split, &ui);
-                        let split = match i {
-                            0 => split.w(kid_area.w()).mid_top_of(id),
-                            _ => split.down(0.0),
-                        }.h(h);
-                        set_split(split_id, split, &mut ui);
-                    },
-                },
+                Direction::Y(direction) => {
+                    match direction {
+                        Forwards => {
+                            for (i, &(split_id, split)) in splits.iter().enumerate() {
+                                let h = length(&split, &ui);
+                                let split = match i {
+                                    0 => split.w(kid_area.w()).mid_bottom_of(id),
+                                    _ => split.up(0.0),
+                                }.h(h);
+                                set_split(split_id, split, &mut ui);
+                            }
+                        }
+                        Backwards => {
+                            for (i, &(split_id, split)) in splits.iter().enumerate() {
+                                let h = length(&split, &ui);
+                                let split = match i {
+                                    0 => split.w(kid_area.w()).mid_top_of(id),
+                                    _ => split.down(0.0),
+                                }.h(h);
+                                set_split(split_id, split, &mut ui);
+                            }
+                        }
+                    }
+                }
             }
 
         }
     }
-
 }
 
 
@@ -442,4 +453,3 @@ impl<'a> ::label::Labelable<'a> for Canvas<'a> {
         label_font_size { style.title_bar_font_size = Some(FontSize) }
     }
 }
-

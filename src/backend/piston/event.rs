@@ -9,7 +9,8 @@ pub use piston_input::{GenericEvent, UpdateEvent};
 ///
 /// The given `width` and `height` must be `Scalar` (DPI agnostic) values.
 pub fn convert<E>(event: E, win_w: Scalar, win_h: Scalar) -> Option<Input>
-    where E: GenericEvent,
+where
+    E: GenericEvent,
 {
     // Translate the coordinates from top-left-origin-with-y-down to centre-origin-with-y-up.
     let translate_coords = |xy: Point| (xy[0] - win_w / 2.0, -(xy[1] - win_h / 2.0));
@@ -21,7 +22,9 @@ pub fn convert<E>(event: E, win_w: Scalar, win_h: Scalar) -> Option<Input>
 
     if let Some(rel_xy) = event.mouse_relative_args() {
         let (rel_x, rel_y) = translate_coords(rel_xy);
-        return Some(Input::Motion(input::Motion::MouseRelative { x: rel_x, y: rel_y }));
+        return Some(Input::Motion(
+            input::Motion::MouseRelative { x: rel_x, y: rel_y },
+        ));
     }
 
     if let Some(xy) = event.mouse_scroll_args() {
@@ -43,7 +46,11 @@ pub fn convert<E>(event: E, win_w: Scalar, win_h: Scalar) -> Option<Input>
             ::piston_input::Touch::Cancel => input::touch::Phase::Cancel,
             ::piston_input::Touch::End => input::touch::Phase::End,
         };
-        let touch = input::Touch { id: id, xy: xy, phase: phase };
+        let touch = input::Touch {
+            id: id,
+            xy: xy,
+            phase: phase,
+        };
         return Some(Input::Touch(touch));
     }
 

@@ -37,10 +37,9 @@ pub struct UiEvents<'a> {
 }
 
 impl Global {
-
     /// Returns a fresh new `Global`
     pub fn new() -> Global {
-        Global{
+        Global {
             events: Vec::new(),
             start: input::State::new(),
             current: input::State::new(),
@@ -65,7 +64,6 @@ impl Global {
         self.events.clear();
         self.start = self.current.clone();
     }
-
 }
 
 impl<'a> Events<'a> {

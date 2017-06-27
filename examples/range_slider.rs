@@ -1,13 +1,16 @@
 //! A simple example demonstrating the `RangeSlider` widget.
 
-#[cfg(all(feature="winit", feature="glium"))] #[macro_use] extern crate conrod;
-#[cfg(all(feature="winit", feature="glium"))] mod support;
+#[cfg(all(feature = "winit", feature = "glium"))]
+#[macro_use]
+extern crate conrod;
+#[cfg(all(feature = "winit", feature = "glium"))]
+mod support;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
     use conrod;
@@ -38,7 +41,9 @@ mod feature {
         let ids = Ids::new(ui.widget_id_generator());
 
         // Add a `Font` to the `Ui`'s `font::Map` from file.
-        let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+            .for_folder("assets")
+            .unwrap();
         let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
         ui.fonts.insert_from_file(font_path).unwrap();
 
@@ -69,7 +74,7 @@ mod feature {
                     glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                     glium::glutin::Event::Closed =>
                         break 'main,
-                    _ => {},
+                    _ => {}
                 }
             }
 
@@ -87,10 +92,17 @@ mod feature {
     }
 
     // Declare the `WidgetId`s and instantiate the widgets.
-    fn set_ui(ref mut ui: conrod::UiCell, ids: &Ids, oval_range: &mut (conrod::Scalar, conrod::Scalar)) {
+    fn set_ui(
+        ref mut ui: conrod::UiCell,
+        ids: &Ids,
+        oval_range: &mut (conrod::Scalar, conrod::Scalar),
+    ) {
         use conrod::{color, widget, Colorable, Positionable, Sizeable, Widget};
 
-        widget::Canvas::new().color(color::DARK_CHARCOAL).set(ids.canvas, ui);
+        widget::Canvas::new().color(color::DARK_CHARCOAL).set(
+            ids.canvas,
+            ui,
+        );
 
         const PAD: conrod::Scalar = 20.0;
         let (ref mut start, ref mut end) = *oval_range;
@@ -120,10 +132,12 @@ mod feature {
     }
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` and `glium` features. \
-                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` and `glium` features. \
+                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+        );
     }
 }

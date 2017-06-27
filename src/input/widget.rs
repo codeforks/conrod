@@ -160,7 +160,6 @@ pub struct Scrolls<'a> {
 
 
 impl<'a> Widget<'a> {
-
     /// Returns a `Widget` with events specifically for the given widget.
     ///
     /// Filters out only the events that directly pertain to the widget.
@@ -252,11 +251,9 @@ impl<'a> Widget<'a> {
     pub fn scrolls(&self) -> Scrolls<'a> {
         Scrolls { events: self.events() }
     }
-
 }
 
 impl<'a> Mouse<'a> {
-
     /// The absolute position of the mouse within the window.
     pub fn abs_xy(&self) -> Point {
         self.mouse_abs_xy
@@ -271,30 +268,22 @@ impl<'a> Mouse<'a> {
     pub fn is_over(&self) -> bool {
         self.rect.is_over(self.mouse_abs_xy)
     }
-
 }
 
 impl<'a> Presses<'a> {
-
     /// Produces an `Iterator` that yields only the press events that correspond with mouse buttons.
     pub fn mouse(self) -> MousePresses<'a> {
-        MousePresses {
-            presses: self,
-        }
+        MousePresses { presses: self }
     }
 
     /// Produces an `Iterator` that yields only the press events that correspond with keyboard
     /// buttons.
     pub fn key(self) -> KeyPresses<'a> {
-        KeyPresses {
-            presses: self,
-        }
+        KeyPresses { presses: self }
     }
-
 }
 
 impl<'a> MousePresses<'a> {
-
     /// Produces an `Iterator` that yields only events associated with the given mouse button.
     pub fn button(self, button: input::MouseButton) -> MouseButtonPresses<'a> {
         MouseButtonPresses {
@@ -317,31 +306,23 @@ impl<'a> MousePresses<'a> {
     pub fn right(self) -> MouseButtonPresses<'a> {
         self.button(input::MouseButton::Right)
     }
-
 }
 
 impl<'a> Releases<'a> {
-
     /// Produces an `Iterator` that yields only the release events that correspond with mouse
     /// buttons.
     pub fn mouse(self) -> MouseReleases<'a> {
-        MouseReleases {
-            releases: self,
-        }
+        MouseReleases { releases: self }
     }
 
     /// Produces an `Iterator` that yields only the release events that correspond with keyboard
     /// buttons.
     pub fn key(self) -> KeyReleases<'a> {
-        KeyReleases {
-            releases: self,
-        }
+        KeyReleases { releases: self }
     }
-
 }
 
 impl<'a> MouseReleases<'a> {
-
     /// Produces an `Iterator` that yields only events associated with the given mouse button.
     pub fn button(self, button: input::MouseButton) -> MouseButtonReleases<'a> {
         MouseButtonReleases {
@@ -364,11 +345,9 @@ impl<'a> MouseReleases<'a> {
     pub fn right(self) -> MouseButtonReleases<'a> {
         self.button(input::MouseButton::Right)
     }
-
 }
 
 impl<'a> Clicks<'a> {
-
     /// Yield only the `Click`s that occurred from the given button.
     pub fn button(self, button: input::MouseButton) -> ButtonClicks<'a> {
         ButtonClicks {
@@ -391,11 +370,9 @@ impl<'a> Clicks<'a> {
     pub fn right(self) -> ButtonClicks<'a> {
         self.button(input::MouseButton::Right)
     }
-
 }
 
 impl<'a> Drags<'a> {
-
     /// Yield only the `Drag`s that occurred from the given button.
     pub fn button(self, button: input::MouseButton) -> ButtonDrags<'a> {
         ButtonDrags {
@@ -408,7 +385,7 @@ impl<'a> Drags<'a> {
     pub fn left(self) -> ButtonDrags<'a> {
         self.button(input::MouseButton::Left)
     }
-    
+
     /// Yields only middle mouse button `Drag`s.
     pub fn middle(self) -> ButtonDrags<'a> {
         self.button(input::MouseButton::Middle)
@@ -418,7 +395,6 @@ impl<'a> Drags<'a> {
     pub fn right(self) -> ButtonDrags<'a> {
         self.button(input::MouseButton::Right)
     }
-
 }
 
 
@@ -437,7 +413,7 @@ impl<'a> Iterator for Events<'a> {
                     if idx == self.idx {
                         return Some(event::Widget::CapturesInputSource(source));
                     }
-                },
+                }
                 event::Ui::WidgetUncapturesInputSource(idx, source) => {
                     if Some(idx) == self.capturing_mouse {
                         self.capturing_mouse = None;
@@ -445,43 +421,52 @@ impl<'a> Iterator for Events<'a> {
                     if idx == self.idx {
                         return Some(event::Widget::UncapturesInputSource(source));
                     }
-                },
+                }
 
-                event::Ui::WindowResized(dim) =>
-                    return Some(event::Widget::WindowResized(dim)),
+                event::Ui::WindowResized(dim) => return Some(event::Widget::WindowResized(dim)),
 
-                event::Ui::Text(idx, ref text) if idx == Some(self.idx) =>
-                    return Some(text.clone().into()),
+                event::Ui::Text(idx, ref text) if idx == Some(self.idx) => {
+                    return Some(text.clone().into())
+                }
 
-                event::Ui::Motion(idx, ref motion) if idx == Some(self.idx) =>
-                    return Some(motion.clone().into()),
+                event::Ui::Motion(idx, ref motion) if idx == Some(self.idx) => {
+                    return Some(motion.clone().into())
+                }
 
-                event::Ui::Touch(idx, ref touch) if idx == Some(self.idx) =>
-                    return Some(touch.clone().relative_to(self.rect.xy()).into()),
+                event::Ui::Touch(idx, ref touch) if idx == Some(self.idx) => {
+                    return Some(touch.clone().relative_to(self.rect.xy()).into())
+                }
 
-                event::Ui::Press(idx, ref press) if idx == Some(self.idx) =>
-                    return Some(press.clone().relative_to(self.rect.xy()).into()),
-                
-                event::Ui::Release(idx, ref release) if idx == Some(self.idx) =>
-                    return Some(release.clone().relative_to(self.rect.xy()).into()),
+                event::Ui::Press(idx, ref press) if idx == Some(self.idx) => {
+                    return Some(press.clone().relative_to(self.rect.xy()).into())
+                }
 
-                event::Ui::Click(idx, ref click) if idx == Some(self.idx) =>
-                    return Some(click.clone().relative_to(self.rect.xy()).into()),
+                event::Ui::Release(idx, ref release) if idx == Some(self.idx) => {
+                    return Some(release.clone().relative_to(self.rect.xy()).into())
+                }
 
-                event::Ui::DoubleClick(idx, ref double_click) if idx == Some(self.idx) =>
-                    return Some(double_click.clone().relative_to(self.rect.xy()).into()),
+                event::Ui::Click(idx, ref click) if idx == Some(self.idx) => {
+                    return Some(click.clone().relative_to(self.rect.xy()).into())
+                }
 
-                event::Ui::Tap(idx, ref tap) if idx == Some(self.idx) =>
-                    return Some(tap.clone().relative_to(self.rect.xy()).into()),
+                event::Ui::DoubleClick(idx, ref double_click) if idx == Some(self.idx) => {
+                    return Some(double_click.clone().relative_to(self.rect.xy()).into())
+                }
 
-                event::Ui::Drag(idx, ref drag) if idx == Some(self.idx) =>
-                    return Some(drag.clone().relative_to(self.rect.xy()).into()),
+                event::Ui::Tap(idx, ref tap) if idx == Some(self.idx) => {
+                    return Some(tap.clone().relative_to(self.rect.xy()).into())
+                }
 
-                event::Ui::Scroll(idx, ref scroll) if idx == Some(self.idx) =>
-                    return Some(scroll.clone().into()),
+                event::Ui::Drag(idx, ref drag) if idx == Some(self.idx) => {
+                    return Some(drag.clone().relative_to(self.rect.xy()).into())
+                }
+
+                event::Ui::Scroll(idx, ref scroll) if idx == Some(self.idx) => {
+                    return Some(scroll.clone().into())
+                }
 
                 _ => (),
-                
+
             }
         }
 

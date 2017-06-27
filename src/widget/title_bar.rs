@@ -63,14 +63,14 @@ const LABEL_PADDING: f64 = 4.0;
 
 
 impl<'a> TitleBar<'a> {
-
     /// Construct a new TitleBar widget and attach it to the widget at the given index.
     pub fn new(label: &'a str, id: widget::Id) -> Self {
         TitleBar {
             common: widget::CommonBuilder::new(),
             style: Style::new(),
             label: label,
-        }.w_of(id).mid_top_of(id)
+        }.w_of(id)
+            .mid_top_of(id)
     }
 
     /// Align the text to the left of its bounding **Rect**'s *x* axis range.
@@ -112,7 +112,6 @@ impl<'a> TitleBar<'a> {
     builder_methods!{
         pub line_spacing { style.line_spacing = Some(Scalar) }
     }
-
 }
 
 
@@ -136,9 +135,7 @@ impl<'a> Widget for TitleBar<'a> {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -152,7 +149,14 @@ impl<'a> Widget for TitleBar<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) {
-        let widget::UpdateArgs { id, state, rect, style, ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            style,
+            ui,
+            ..
+        } = args;
         let TitleBar { label, .. } = self;
 
         // BorderedRectangle widget.
@@ -192,7 +196,6 @@ impl<'a> Widget for TitleBar<'a> {
             .graphics_for(id)
             .set(state.ids.label, ui);
     }
-
 }
 
 

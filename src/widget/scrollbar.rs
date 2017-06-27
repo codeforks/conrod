@@ -65,7 +65,6 @@ pub struct State {
 }
 
 impl<A> Scrollbar<A> {
-
     /// Begin building a new scrollbar widget.
     fn new(widget: widget::Id) -> Self {
         Scrollbar {
@@ -99,11 +98,9 @@ impl<A> Scrollbar<A> {
         self.style.thickness = Some(thickness);
         self
     }
-
 }
 
 impl Scrollbar<X> {
-
     /// Begin building a new scrollbar widget that scrolls along the *X* axis along the range of
     /// the scrollable widget at the given Id.
     pub fn x_axis(widget: widget::Id) -> Self {
@@ -111,11 +108,9 @@ impl Scrollbar<X> {
             .align_middle_x_of(widget)
             .align_bottom_of(widget)
     }
-
 }
 
 impl Scrollbar<Y> {
-
     /// Begin building a new scrollbar widget that scrolls along the *Y* axis along the range of
     /// the scrollable widget at the given Id.
     pub fn y_axis(widget: widget::Id) -> Self {
@@ -123,11 +118,11 @@ impl Scrollbar<Y> {
             .align_middle_y_of(widget)
             .align_right_of(widget)
     }
-
 }
 
 impl<A> Widget for Scrollbar<A>
-    where A: Axis,
+where
+    A: Axis,
 {
     type State = State;
     type Style = Style;
@@ -142,9 +137,7 @@ impl<A> Widget for Scrollbar<A>
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -160,7 +153,14 @@ impl<A> Widget for Scrollbar<A>
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, rect, style, mut ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            style,
+            mut ui,
+            ..
+        } = args;
         let Scrollbar { widget, .. } = self;
 
         let color = style.color(ui.theme());
@@ -168,14 +168,17 @@ impl<A> Widget for Scrollbar<A>
         // Only continue if the widget that we want to scroll has some scroll state.
         let (offset_bounds, offset, scrollable_range_len, is_scrolling) =
             match ui.widget_graph().widget(widget) {
-                Some(widget) => match A::scroll_state(widget) {
-                    Some(scroll) =>
-                        (scroll.offset_bounds,
-                         scroll.offset,
-                         scroll.scrollable_range_len,
-                         scroll.is_scrolling),
-                    None => return,
-                },
+                Some(widget) => {
+                    match A::scroll_state(widget) {
+                        Some(scroll) => (
+                            scroll.offset_bounds,
+                            scroll.offset,
+                            scroll.scrollable_range_len,
+                            scroll.is_scrolling,
+                        ),
+                        None => return,
+                    }
+                }
                 None => return,
             };
 
@@ -224,13 +227,17 @@ impl<A> Widget for Scrollbar<A>
                             let offset_range_len = offset_bounds.len();
                             let mouse_scalar = A::mouse_scalar(xy);
                             let pos_offset = mouse_scalar - handle_range.middle();
-                            let offset = utils::map_range(pos_offset,
-                                                          0.0, handle_pos_range_len,
-                                                          0.0, offset_range_len);
+                            let offset = utils::map_range(
+                                pos_offset,
+                                0.0,
+                                handle_pos_range_len,
+                                0.0,
+                                offset_range_len,
+                            );
                             additional_offset += -offset;
                         }
                     }
-                },
+                }
 
                 // Check for the handle being dragged across the track.
                 event::Widget::Drag(drag) if drag.button == input::MouseButton::Left => {
@@ -239,11 +246,15 @@ impl<A> Widget for Scrollbar<A>
                     let from_scalar = A::mouse_scalar(drag.from);
                     let to_scalar = A::mouse_scalar(drag.to);
                     let pos_offset = to_scalar - from_scalar;
-                    let offset = utils::map_range(pos_offset,
-                                                  0.0, handle_pos_range_len,
-                                                  0.0, offset_range_len);
+                    let offset = utils::map_range(
+                        pos_offset,
+                        0.0,
+                        handle_pos_range_len,
+                        0.0,
+                        offset_range_len,
+                    );
                     additional_offset += -offset;
-                },
+                }
 
                 _ => (),
 
@@ -287,7 +298,6 @@ impl<A> Widget for Scrollbar<A>
 }
 
 impl Axis for X {
-
     fn track_rect(container: Rect, thickness: Scalar) -> Rect {
         let h = thickness;
         let w = container.w();
@@ -317,11 +327,9 @@ impl Axis for X {
     fn to_2d(scalar: Scalar) -> [Scalar; 2] {
         [scalar, 0.0]
     }
-
 }
 
 impl Axis for Y {
-
     fn track_rect(container: Rect, thickness: Scalar) -> Rect {
         let w = thickness;
         let h = container.h();
@@ -351,7 +359,6 @@ impl Axis for Y {
     fn to_2d(scalar: Scalar) -> [Scalar; 2] {
         [0.0, scalar]
     }
-
 }
 
 impl<A> Colorable for Scrollbar<A> {

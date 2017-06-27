@@ -1,11 +1,14 @@
-#[cfg(all(feature="winit", feature="glium"))] #[macro_use] extern crate conrod;
-#[cfg(all(feature="winit", feature="glium"))] mod support;
+#[cfg(all(feature = "winit", feature = "glium"))]
+#[macro_use]
+extern crate conrod;
+#[cfg(all(feature = "winit", feature = "glium"))]
+mod support;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
     use conrod;
@@ -37,7 +40,9 @@ mod feature {
         let ids = Ids::new(ui.widget_id_generator());
 
         // Add a `Font` to the `Ui`'s `font::Map` from file.
-        let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+            .for_folder("assets")
+            .unwrap();
         let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
         ui.fonts.insert_from_file(font_path).unwrap();
 
@@ -65,7 +70,7 @@ mod feature {
             "Indian Tent Turtle".to_string(),
             "Mud Turtle".to_string(),
             "Painted Turtle".to_string(),
-            "Spotted Turtle".to_string()
+            "Spotted Turtle".to_string(),
         ];
 
         // List of selections, should be same length as list of entries. Will be updated by the widget.
@@ -89,17 +94,21 @@ mod feature {
                     glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                     glium::glutin::Event::Closed =>
                         break 'main,
-                    _ => {},
+                    _ => {}
                 }
             }
 
             // Instantiate the conrod widgets.
             {
-                use conrod::{widget, Borderable, Colorable, Labelable, Positionable, Sizeable, Widget};
+                use conrod::{widget, Borderable, Colorable, Labelable, Positionable, Sizeable,
+                             Widget};
 
                 let ui = &mut ui.set_widgets();
 
-                widget::Canvas::new().color(conrod::color::BLUE).set(ids.canvas, ui);
+                widget::Canvas::new().color(conrod::color::BLUE).set(
+                    ids.canvas,
+                    ui,
+                );
 
                 // Instantiate the `ListSelect` widget.
                 let num_items = list_items.len();
@@ -132,13 +141,13 @@ mod feature {
                                 .label_font_size(font_size)
                                 .label_color(label_color);
                             item.set(button, ui);
-                        },
+                        }
 
                         // The selection has changed.
                         Event::Selection(selection) => {
                             selection.update_index_set(&mut list_selected);
                             println!("selected indices: {:?}", list_selected);
-                        },
+                        }
 
                         // The remaining events indicate interactions with the `ListSelect` widget.
                         event => println!("{:?}", &event),
@@ -146,7 +155,9 @@ mod feature {
                 }
 
                 // Instantiate the scrollbar for the list.
-                if let Some(s) = scrollbar { s.set(ui); }
+                if let Some(s) = scrollbar {
+                    s.set(ui);
+                }
             }
 
             // Render the `Ui` and then display it on the screen.
@@ -161,10 +172,12 @@ mod feature {
     }
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` and `glium` features. \
-                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` and `glium` features. \
+                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+        );
     }
 }

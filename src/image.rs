@@ -53,7 +53,6 @@ impl<Img> std::ops::Deref for Map<Img> {
 
 
 impl<Img> Map<Img> {
-
     /// Construct a new, empty `image::Map`.
     pub fn new() -> Self {
         Map {
@@ -109,7 +108,8 @@ impl<Img> Map<Img> {
     ///
     /// Note: Calling this will trigger a redraw the next time `Ui::draw_if_changed` is called.
     pub fn extend<I>(&mut self, images: I) -> NewIds
-        where I: IntoIterator<Item=Img>,
+    where
+        I: IntoIterator<Item = Img>,
     {
         self.trigger_redraw.set(true);
         let start_index = self.next_index;
@@ -120,7 +120,6 @@ impl<Img> Map<Img> {
         }
         NewIds { index_range: start_index..end_index }
     }
-
 }
 
 impl Iterator for NewIds {

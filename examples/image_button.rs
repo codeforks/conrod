@@ -7,14 +7,17 @@
 //! check the current `Theme` within the `Ui` and retrieve defaults from there.
 //!
 
-#[cfg(all(feature="winit", feature="glium"))] #[macro_use] extern crate conrod;
-#[cfg(all(feature="winit", feature="glium"))] mod support;
+#[cfg(all(feature = "winit", feature = "glium"))]
+#[macro_use]
+extern crate conrod;
+#[cfg(all(feature = "winit", feature = "glium"))]
+mod support;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
     extern crate image;
@@ -42,7 +45,9 @@ mod feature {
         let mut ui = conrod::UiBuilder::new([WIDTH as f64, HEIGHT as f64]).build();
 
         // Add a `Font` to the `Ui`'s `font::Map` from file.
-        let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+            .for_folder("assets")
+            .unwrap();
         let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
         ui.fonts.insert_from_file(font_path).unwrap();
 
@@ -95,7 +100,7 @@ mod feature {
                     glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                     glium::glutin::Event::Closed =>
                         break 'main,
-                    _ => {},
+                    _ => {}
                 }
             }
 
@@ -103,10 +108,10 @@ mod feature {
                 let ui = &mut ui.set_widgets();
 
                 // We can use this `Canvas` as a parent Widget upon which we can place other widgets.
-                widget::Canvas::new()
-                    .pad(30.0)
-                    .color(bg_color)
-                    .set(ids.canvas, ui);
+                widget::Canvas::new().pad(30.0).color(bg_color).set(
+                    ids.canvas,
+                    ui,
+                );
 
                 // Button widget example button.
                 if widget::Button::image(image_ids.normal)
@@ -135,21 +140,27 @@ mod feature {
 
     // Load an image from our assets folder as a texture we can draw to the screen.
     fn load_image<P>(display: &glium::Display, path: P) -> glium::texture::SrgbTexture2d
-        where P: AsRef<std::path::Path>,
+    where
+        P: AsRef<std::path::Path>,
     {
         let path = path.as_ref();
         let rgba_image = image::open(&std::path::Path::new(&path)).unwrap().to_rgba();
         let image_dimensions = rgba_image.dimensions();
-        let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(rgba_image.into_raw(), image_dimensions);
+        let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(
+            rgba_image.into_raw(),
+            image_dimensions,
+        );
         let texture = glium::texture::SrgbTexture2d::new(display, raw_image).unwrap();
         texture
     }
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` and `glium` features. \
-                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` and `glium` features. \
+                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+        );
     }
 }

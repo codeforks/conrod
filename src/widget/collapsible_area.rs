@@ -68,12 +68,11 @@ pub struct Area {
     /// The widget::Id for the collapsible area that produced this `Area`.
     pub collapsible_area_id: widget::Id,
     /// The width of the `CollapsibleArea` that produced this `Area`.
-    pub width: Scalar
+    pub width: Scalar,
 }
 
 
 impl<'a> CollapsibleArea<'a> {
-
     /// Begin building the `CollapsibleArea` widget.
     pub fn new(is_open: bool, text: &'a str) -> Self {
         CollapsibleArea {
@@ -101,7 +100,6 @@ impl<'a> CollapsibleArea<'a> {
         self.style.label_font_id = Some(Some(font_id));
         self
     }
-
 }
 
 impl<'a> Widget for CollapsibleArea<'a> {
@@ -118,9 +116,7 @@ impl<'a> Widget for CollapsibleArea<'a> {
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Style {
@@ -128,7 +124,14 @@ impl<'a> Widget for CollapsibleArea<'a> {
     }
 
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, style, rect, ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            style,
+            rect,
+            ui,
+            ..
+        } = args;
         let CollapsibleArea { text, mut is_open, .. } = self;
 
         let (_, _, w, h) = rect.x_y_w_h();
@@ -161,7 +164,9 @@ impl<'a> Widget for CollapsibleArea<'a> {
             .label(text)
             .label_color(label_color)
             .label_font_size(label_font_size)
-            .label_x(position::Relative::Place(position::Place::Start(Some(triangle_rect.w()))))
+            .label_x(position::Relative::Place(
+                position::Place::Start(Some(triangle_rect.w())),
+            ))
             .and_then(label_font_id, |b, font_id| b.label_font_id(font_id))
             .set(state.ids.button, ui)
             .next()
@@ -245,9 +250,14 @@ impl Area {
     ///
     /// Returns any events produced by the given widget.
     pub fn set<W>(self, widget: W, ui: &mut UiCell) -> W::Event
-        where W: Widget,
+    where
+        W: Widget,
     {
-        let Area { id, collapsible_area_id, width } = self;
+        let Area {
+            id,
+            collapsible_area_id,
+            width,
+        } = self;
         widget
             .w(width)
             .parent(collapsible_area_id)

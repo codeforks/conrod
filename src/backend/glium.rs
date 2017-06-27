@@ -268,7 +268,8 @@ pub trait TextureDimensions {
 }
 
 impl<T> TextureDimensions for T
-    where T: std::ops::Deref<Target=glium::texture::TextureAny>,
+where
+    T: std::ops::Deref<Target = glium::texture::TextureAny>,
 {
     fn dimensions(&self) -> (u32, u32) {
         (self.get_width(), self.get_height().unwrap_or(0))
@@ -278,7 +279,8 @@ impl<T> TextureDimensions for T
 
 /// Construct the glium shader program that can be used to render `Vertex`es.
 pub fn program<F>(facade: &F) -> Result<glium::Program, glium::program::ProgramChooserCreationError>
-    where F: glium::backend::Facade,
+where
+    F: glium::backend::Facade,
 {
     program!(facade,
              120 => { vertex: VERTEX_SHADER_120, fragment: FRAGMENT_SHADER_120 },
@@ -289,7 +291,11 @@ pub fn program<F>(facade: &F) -> Result<glium::Program, glium::program::ProgramC
 /// Default glium `DrawParameters` with alpha blending enabled.
 pub fn draw_parameters() -> glium::DrawParameters<'static> {
     let blend = glium::Blend::alpha_blending();
-    glium::DrawParameters { multisampling: true, blend: blend, ..Default::default() }
+    glium::DrawParameters {
+        multisampling: true,
+        blend: blend,
+        ..Default::default()
+    }
 }
 
 
@@ -321,7 +327,9 @@ pub fn text_texture_client_format(opengl_version: &glium::Version) -> glium::tex
 }
 
 /// Return the optimal uncompressed float format for the text texture given the version.
-pub fn text_texture_uncompressed_float_format(opengl_version: &glium::Version) -> glium::texture::UncompressedFloatFormat {
+pub fn text_texture_uncompressed_float_format(
+    opengl_version: &glium::Version,
+) -> glium::texture::UncompressedFloatFormat {
     match *opengl_version {
         // If the version is greater than or equal to GL 3.0 or GLes 3.0, we can use the `U8` format.
         glium::Version(_, major, _) if major >= 3 => glium::texture::UncompressedFloatFormat::U8,
@@ -332,11 +340,11 @@ pub fn text_texture_uncompressed_float_format(opengl_version: &glium::Version) -
 
 
 impl GlyphCache {
-
     /// Construct a `GlyphCache` with a size equal to the given `Display`'s current framebuffer
     /// dimensions.
     pub fn new<F>(facade: &F) -> Result<Self, glium::texture::TextureCreationError>
-        where F: glium::backend::Facade,
+    where
+        F: glium::backend::Facade,
     {
         const SCALE_TOLERANCE: f32 = 0.1;
         const POSITION_TOLERANCE: f32 = 0.1;
@@ -367,7 +375,12 @@ impl GlyphCache {
         };
         let format = uncompressed_float_format;
         let no_mipmap = glium::texture::MipmapsOption::NoMipmap;
-        let texture = try!(glium::texture::Texture2d::with_format(facade, grey_image, format, no_mipmap));
+        let texture = try!(glium::texture::Texture2d::with_format(
+            facade,
+            grey_image,
+            format,
+            no_mipmap,
+        ));
 
         Ok(GlyphCache {
             cache: cache,
@@ -379,15 +392,14 @@ impl GlyphCache {
     pub fn texture(&self) -> &glium::texture::Texture2d {
         &self.texture
     }
-
 }
 
 
 impl Renderer {
-
     /// Construct a new empty `Renderer`.
     pub fn new<F>(facade: &F) -> Result<Self, RendererCreationError>
-        where F: glium::backend::Facade,
+    where
+        F: glium::backend::Facade,
     {
         let program = try!(program(facade));
         let glyph_cache = try!(GlyphCache::new(facade));
@@ -401,7 +413,11 @@ impl Renderer {
 
     /// Produce an `Iterator` yielding `Command`s.
     pub fn commands(&self) -> Commands {
-        let Renderer { ref commands, ref vertices, .. } = *self;
+        let Renderer {
+            ref commands,
+            ref vertices,
+            ..
+        } = *self;
         Commands {
             commands: commands.iter(),
             vertices: vertices,
@@ -409,14 +425,21 @@ impl Renderer {
     }
 
     /// Fill the inner vertex and command buffers by translating the given `primitives`.
-    pub fn fill<P, T>(&mut self,
-                      display: &glium::Display,
-                      mut primitives: P,
-                      image_map: &image::Map<T>)
-        where P: render::PrimitiveWalker,
-              T: TextureDimensions,
+    pub fn fill<P, T>(
+        &mut self,
+        display: &glium::Display,
+        mut primitives: P,
+        image_map: &image::Map<T>,
+    ) where
+        P: render::PrimitiveWalker,
+        T: TextureDimensions,
     {
-        let Renderer { ref mut commands, ref mut vertices, ref mut glyph_cache, .. } = *self;
+        let Renderer {
+            ref mut commands,
+            ref mut vertices,
+            ref mut glyph_cache,
+            ..
+        } = *self;
 
         commands.clear();
         vertices.clear();
@@ -459,7 +482,9 @@ impl Renderer {
         let (win_w, win_h) = (screen_w as Scalar, screen_h as Scalar);
         let half_win_w = win_w / 2.0;
         let half_win_h = win_h / 2.0;
-        let dpi_factor = display.get_window().map(|w| w.hidpi_factor()).unwrap_or(1.0) as Scalar;
+        let dpi_factor = display.get_window().map(|w| w.hidpi_factor()).unwrap_or(
+            1.0,
+        ) as Scalar;
 
         // Functions for converting for conrod scalar coords to GL vertex coords (-1.0 to 1.0).
         let vx = |x: Scalar| (x * dpi_factor / half_win_w) as f32;
@@ -488,17 +513,24 @@ impl Renderer {
 
         // Draw each primitive in order of depth.
         while let Some(primitive) = primitives.next_primitive() {
-            let render::Primitive { kind, scizzor, rect, .. } = primitive;
+            let render::Primitive {
+                kind,
+                scizzor,
+                rect,
+                ..
+            } = primitive;
 
             // Check for a `Scizzor` command.
             let new_scizzor = rect_to_glium_rect(scizzor);
             if new_scizzor != current_scizzor {
                 // Finish the current command.
                 match current_state {
-                    State::Plain { start } =>
-                        commands.push(PreparedCommand::Plain(start..vertices.len())),
-                    State::Image { image_id, start } =>
-                        commands.push(PreparedCommand::Image(image_id, start..vertices.len())),
+                    State::Plain { start } => {
+                        commands.push(PreparedCommand::Plain(start..vertices.len()))
+                    }
+                    State::Image { image_id, start } => {
+                        commands.push(PreparedCommand::Image(image_id, start..vertices.len()))
+                    }
                 }
 
                 // Update the scizzor and produce a command.
@@ -538,7 +570,7 @@ impl Renderer {
                     push_v(l, t);
                     push_v(r, b);
                     push_v(r, t);
-                },
+                }
 
                 render::PrimitiveKind::Polygon { color, points } => {
                     // If we don't at least have a triangle, keep looping.
@@ -576,9 +608,14 @@ impl Renderer {
                         vertices.push(v);
                         prev_v = v;
                     }
-                },
+                }
 
-                render::PrimitiveKind::Lines { color, cap, thickness, points } => {
+                render::PrimitiveKind::Lines {
+                    color,
+                    cap,
+                    thickness,
+                    points,
+                } => {
 
                     // We need at least two points to draw any lines.
                     if points.len() < 2 {
@@ -633,14 +670,21 @@ impl Renderer {
 
                         a = b;
                     }
-                },
+                }
 
-                render::PrimitiveKind::Text { color, text, font_id } => {
+                render::PrimitiveKind::Text {
+                    color,
+                    text,
+                    font_id,
+                } => {
                     switch_to_plain_state!();
 
                     let positioned_glyphs = text.positioned_glyphs(dpi_factor as f32);
 
-                    let GlyphCache { ref mut cache, ref mut texture } = *glyph_cache;
+                    let GlyphCache {
+                        ref mut cache,
+                        ref mut texture,
+                    } = *glyph_cache;
 
                     // Queue the glyphs to be cached.
                     for glyph in positioned_glyphs.iter() {
@@ -689,36 +733,66 @@ impl Renderer {
                     let cache_id = font_id.index();
 
                     let origin = text::rt::point(0.0, 0.0);
-                    let to_gl_rect = |screen_rect: text::rt::Rect<i32>| text::rt::Rect {
-                        min: origin
-                            + (text::rt::vector(screen_rect.min.x as f32 / screen_w as f32 - 0.5,
-                                          1.0 - screen_rect.min.y as f32 / screen_h as f32 - 0.5)) * 2.0,
-                        max: origin
-                            + (text::rt::vector(screen_rect.max.x as f32 / screen_w as f32 - 0.5,
-                                          1.0 - screen_rect.max.y as f32 / screen_h as f32 - 0.5)) * 2.0
+                    let to_gl_rect = |screen_rect: text::rt::Rect<i32>| {
+                        text::rt::Rect {
+                            min: origin +
+                                (text::rt::vector(
+                                    screen_rect.min.x as f32 / screen_w as f32 - 0.5,
+                                    1.0 - screen_rect.min.y as f32 / screen_h as f32 - 0.5,
+                                )) * 2.0,
+                            max: origin +
+                                (text::rt::vector(
+                                    screen_rect.max.x as f32 / screen_w as f32 - 0.5,
+                                    1.0 - screen_rect.max.y as f32 / screen_h as f32 - 0.5,
+                                )) * 2.0,
+                        }
                     };
 
                     for g in positioned_glyphs {
                         if let Ok(Some((uv_rect, screen_rect))) = cache.rect_for(cache_id, g) {
                             let gl_rect = to_gl_rect(screen_rect);
-                            let v = |p, t| Vertex {
-                                position: p,
-                                tex_coords: t,
-                                color: color,
-                                mode: MODE_TEXT,
+                            let v = |p, t| {
+                                Vertex {
+                                    position: p,
+                                    tex_coords: t,
+                                    color: color,
+                                    mode: MODE_TEXT,
+                                }
                             };
                             let mut push_v = |p, t| vertices.push(v(p, t));
-                            push_v([gl_rect.min.x, gl_rect.max.y], [uv_rect.min.x, uv_rect.max.y]);
-                            push_v([gl_rect.min.x, gl_rect.min.y], [uv_rect.min.x, uv_rect.min.y]);
-                            push_v([gl_rect.max.x, gl_rect.min.y], [uv_rect.max.x, uv_rect.min.y]);
-                            push_v([gl_rect.max.x, gl_rect.min.y], [uv_rect.max.x, uv_rect.min.y]);
-                            push_v([gl_rect.max.x, gl_rect.max.y], [uv_rect.max.x, uv_rect.max.y]);
-                            push_v([gl_rect.min.x, gl_rect.max.y], [uv_rect.min.x, uv_rect.max.y]);
+                            push_v(
+                                [gl_rect.min.x, gl_rect.max.y],
+                                [uv_rect.min.x, uv_rect.max.y],
+                            );
+                            push_v(
+                                [gl_rect.min.x, gl_rect.min.y],
+                                [uv_rect.min.x, uv_rect.min.y],
+                            );
+                            push_v(
+                                [gl_rect.max.x, gl_rect.min.y],
+                                [uv_rect.max.x, uv_rect.min.y],
+                            );
+                            push_v(
+                                [gl_rect.max.x, gl_rect.min.y],
+                                [uv_rect.max.x, uv_rect.min.y],
+                            );
+                            push_v(
+                                [gl_rect.max.x, gl_rect.max.y],
+                                [uv_rect.max.x, uv_rect.max.y],
+                            );
+                            push_v(
+                                [gl_rect.min.x, gl_rect.max.y],
+                                [uv_rect.min.x, uv_rect.max.y],
+                            );
                         }
                     }
-                },
+                }
 
-                render::PrimitiveKind::Image { image_id, color, source_rect } => {
+                render::PrimitiveKind::Image {
+                    image_id,
+                    color,
+                    source_rect,
+                } => {
 
                     // Switch to the `Image` state for this image if we're not in it already.
                     let new_image_id = image_id;
@@ -734,7 +808,7 @@ impl Renderer {
                                 image_id: new_image_id,
                                 start: vertices.len(),
                             };
-                        },
+                        }
 
                         // If we were drawing a different image, switch state to draw *this* image.
                         State::Image { image_id, start } => {
@@ -743,7 +817,7 @@ impl Renderer {
                                 image_id: new_image_id,
                                 start: vertices.len(),
                             };
-                        },
+                        }
                     }
 
                     let color = color.unwrap_or(color::WHITE).to_fsa();
@@ -759,11 +833,13 @@ impl Renderer {
                     let (uv_l, uv_r, uv_b, uv_t) = match source_rect {
                         Some(src_rect) => {
                             let (l, r, b, t) = src_rect.l_r_b_t();
-                            ((l / image_w) as f32,
-                             (r / image_w) as f32,
-                             (b / image_h) as f32,
-                             (t / image_h) as f32)
-                        },
+                            (
+                                (l / image_w) as f32,
+                                (r / image_w) as f32,
+                                (b / image_h) as f32,
+                                (t / image_h) as f32,
+                            )
+                        }
                         None => (0.0, 1.0, 0.0, 1.0),
                     };
 
@@ -792,7 +868,7 @@ impl Renderer {
                     push_v(l, t, [uv_l, uv_t]);
                     push_v(r, b, [uv_r, uv_b]);
                     push_v(r, t, [uv_r, uv_t]);
-                },
+                }
 
                 // We have no special case widgets to handle.
                 render::PrimitiveKind::Other(_) => (),
@@ -802,10 +878,10 @@ impl Renderer {
 
         // Enter the final command.
         match current_state {
-            State::Plain { start } =>
-                commands.push(PreparedCommand::Plain(start..vertices.len())),
-            State::Image { image_id, start } =>
-                commands.push(PreparedCommand::Image(image_id, start..vertices.len())),
+            State::Plain { start } => commands.push(PreparedCommand::Plain(start..vertices.len())),
+            State::Image { image_id, start } => {
+                commands.push(PreparedCommand::Image(image_id, start..vertices.len()))
+            }
         }
     }
 
@@ -815,15 +891,21 @@ impl Renderer {
     /// and `commands` methods separately. This method is simply a convenience wrapper around those
     /// methods for the case that the user does not require accessing or modifying conrod's draw
     /// parameters, uniforms or generated draw commands.
-    pub fn draw<F, S, T>(&self, facade: &F, surface: &mut S, image_map: &image::Map<T>)
-        -> Result<(), DrawError>
-        where F: glium::backend::Facade,
-              S: glium::Surface,
-              for<'a> glium::uniforms::Sampler<'a, T>: glium::uniforms::AsUniformValue,
+    pub fn draw<F, S, T>(
+        &self,
+        facade: &F,
+        surface: &mut S,
+        image_map: &image::Map<T>,
+    ) -> Result<(), DrawError>
+    where
+        F: glium::backend::Facade,
+        S: glium::Surface,
+        for<'a> glium::uniforms::Sampler<'a, T>: glium::uniforms::AsUniformValue,
     {
         let mut draw_params = draw_parameters();
         let no_indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
-        let uniforms = uniform! {
+        let uniforms =
+            uniform! {
             tex: self.glyph_cache.texture()
                 .sampled()
                 .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest)
@@ -837,46 +919,69 @@ impl Renderer {
                 Command::Scizzor(scizzor) => draw_params.scissor = Some(scizzor),
 
                 // Draw to the target with the given `draw` command.
-                Command::Draw(draw) => match draw {
+                Command::Draw(draw) => {
+                    match draw {
 
-                    // Draw text and plain 2D geometry.
-                    Draw::Plain(slice) => {
-                        let vertex_buffer = try!(glium::VertexBuffer::new(facade, slice));
-                        surface.draw(&vertex_buffer, no_indices, &self.program, &uniforms, &draw_params).unwrap();
-                    },
+                        // Draw text and plain 2D geometry.
+                        Draw::Plain(slice) => {
+                            let vertex_buffer = try!(glium::VertexBuffer::new(facade, slice));
+                            surface
+                                .draw(
+                                    &vertex_buffer,
+                                    no_indices,
+                                    &self.program,
+                                    &uniforms,
+                                    &draw_params,
+                                )
+                                .unwrap();
+                        }
 
-                    // Draw an image whose texture data lies within the `image_map` at the
-                    // given `id`.
-                    Draw::Image(image_id, slice) => {
-                        let vertex_buffer = glium::VertexBuffer::new(facade, slice).unwrap();
-                        let image = image_map.get(&image_id).unwrap();
-                        let image_uniforms = uniform! {
+                        // Draw an image whose texture data lies within the `image_map` at the
+                        // given `id`.
+                        Draw::Image(image_id, slice) => {
+                            let vertex_buffer = glium::VertexBuffer::new(facade, slice).unwrap();
+                            let image = image_map.get(&image_id).unwrap();
+                            let image_uniforms =
+                                uniform! {
                             tex: glium::uniforms::Sampler::new(image)
                                 .wrap_function(glium::uniforms::SamplerWrapFunction::Clamp)
                                 .magnify_filter(glium::uniforms::MagnifySamplerFilter::Nearest),
                         };
-                        surface.draw(&vertex_buffer, no_indices, &self.program, &image_uniforms, &draw_params).unwrap();
-                    },
+                            surface
+                                .draw(
+                                    &vertex_buffer,
+                                    no_indices,
+                                    &self.program,
+                                    &image_uniforms,
+                                    &draw_params,
+                                )
+                                .unwrap();
+                        }
 
+                    }
                 }
             }
         }
 
         Ok(())
     }
-
 }
 
 impl<'a> Iterator for Commands<'a> {
     type Item = Command<'a>;
     fn next(&mut self) -> Option<Self::Item> {
-        let Commands { ref mut commands, ref vertices } = *self;
+        let Commands {
+            ref mut commands,
+            ref vertices,
+        } = *self;
         commands.next().map(|command| match *command {
             PreparedCommand::Scizzor(scizzor) => Command::Scizzor(scizzor),
-            PreparedCommand::Plain(ref range) =>
-                Command::Draw(Draw::Plain(&vertices[range.clone()])),
-            PreparedCommand::Image(id, ref range) =>
-                Command::Draw(Draw::Image(id, &vertices[range.clone()])),
+            PreparedCommand::Plain(ref range) => Command::Draw(
+                Draw::Plain(&vertices[range.clone()]),
+            ),
+            PreparedCommand::Image(id, ref range) => Command::Draw(
+                Draw::Image(id, &vertices[range.clone()]),
+            ),
         })
     }
 }

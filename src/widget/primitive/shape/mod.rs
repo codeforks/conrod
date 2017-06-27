@@ -21,7 +21,6 @@ pub enum Style {
 
 
 impl Style {
-
     /// A default `Fill` style.
     pub fn fill() -> Self {
         Style::Fill(None)
@@ -63,5 +62,4 @@ impl Style {
             Style::Outline(style) => style.get_color(theme),
         }
     }
-
 }

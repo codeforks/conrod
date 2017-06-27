@@ -18,7 +18,6 @@ pub struct DepthOrder {
 
 
 impl DepthOrder {
-
     /// Construct a new empty **DepthOrder**.
     pub fn new() -> DepthOrder {
         DepthOrder {
@@ -50,12 +49,16 @@ impl DepthOrder {
     ///
     /// The `visit_by_depth` algorithm should not be recursive and instead use either looping,
     /// walking or iteration.
-    pub fn update(&mut self,
-                  graph: &Graph,
-                  root: widget::Id,
-                  updated_widgets: &fnv::FnvHashSet<widget::Id>)
-    {
-        let DepthOrder { ref mut indices, ref mut floating } = *self;
+    pub fn update(
+        &mut self,
+        graph: &Graph,
+        root: widget::Id,
+        updated_widgets: &fnv::FnvHashSet<widget::Id>,
+    ) {
+        let DepthOrder {
+            ref mut indices,
+            ref mut floating,
+        } = *self;
 
         // Clear the buffers and ensure they've enough memory allocated.
         let num_nodes = graph.node_count();
@@ -73,8 +76,10 @@ impl DepthOrder {
             (&Node::Widget(ref a), &Node::Widget(ref b)) => {
                 let a_floating = a.maybe_floating.expect("Not floating");
                 let b_floating = b.maybe_floating.expect("Not floating");
-                a_floating.time_last_clicked.cmp(&b_floating.time_last_clicked)
-            },
+                a_floating.time_last_clicked.cmp(
+                    &b_floating.time_last_clicked,
+                )
+            }
             _ => std::cmp::Ordering::Equal,
         });
 
@@ -84,17 +89,17 @@ impl DepthOrder {
             visit_by_depth(graph, idx, updated_widgets, indices, floating);
         }
     }
-
 }
 
 
 /// Recursive function for visiting all nodes within the dag.
-fn visit_by_depth(graph: &Graph,
-                  idx: widget::Id,
-                  updated_widgets: &fnv::FnvHashSet<widget::Id>,
-                  depth_order: &mut Vec<widget::Id>,
-                  floating_deque: &mut Vec<widget::Id>)
-{
+fn visit_by_depth(
+    graph: &Graph,
+    idx: widget::Id,
+    updated_widgets: &fnv::FnvHashSet<widget::Id>,
+    depth_order: &mut Vec<widget::Id>,
+    floating_deque: &mut Vec<widget::Id>,
+) {
     // First, if the current node is a widget and it was set in the current `set_widgets` stage,
     // store its index.
     match graph.widget(idx).is_some() && updated_widgets.contains(&idx) {
@@ -106,7 +111,8 @@ fn visit_by_depth(graph: &Graph,
     // Sort the children of the current node by their `.depth` members.
     // FIXME: We should remove these allocations by storing a `child_sorter` buffer in each Widget
     // node (perhaps in the `Container`).
-    let mut child_sorter: Vec<widget::Id> = graph.depth_children(idx).iter(&graph).nodes().collect();
+    let mut child_sorter: Vec<widget::Id> =
+        graph.depth_children(idx).iter(&graph).nodes().collect();
 
     child_sorter.sort_by(|&a, &b| {
         use std::cmp::Ordering;
@@ -131,9 +137,15 @@ fn visit_by_depth(graph: &Graph,
         // Store floating widgets int he floating_deque for visiting after the current tree.
         match maybe_is_floating {
             Some(true) => floating_deque.push(child_idx),
-            _ => visit_by_depth(graph, child_idx, updated_widgets, depth_order, floating_deque),
+            _ => {
+                visit_by_depth(
+                    graph,
+                    child_idx,
+                    updated_widgets,
+                    depth_order,
+                    floating_deque,
+                )
+            }
         }
     }
 }
-
-

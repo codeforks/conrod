@@ -65,7 +65,6 @@ pub struct State {
 }
 
 impl<'a, T> Slider<'a, T> {
-
     /// Construct a new Slider widget.
     pub fn new(value: T, min: T, max: T) -> Self {
         Slider {
@@ -90,11 +89,11 @@ impl<'a, T> Slider<'a, T> {
         pub skew { skew = f32 }
         pub enabled { enabled = bool }
     }
-
 }
 
 impl<'a, T> Widget for Slider<'a, T>
-    where T: Float + NumCast + ToPrimitive,
+where
+    T: Float + NumCast + ToPrimitive,
 {
     type State = State;
     type Style = Style;
@@ -109,9 +108,7 @@ impl<'a, T> Widget for Slider<'a, T>
     }
 
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
-        State {
-            ids: Ids::new(id_gen),
-        }
+        State { ids: Ids::new(id_gen) }
     }
 
     fn style(&self) -> Self::Style {
@@ -133,8 +130,22 @@ impl<'a, T> Widget for Slider<'a, T>
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         use utils::{clamp, map_range, value_from_perc};
 
-        let widget::UpdateArgs { id, state, rect, style, ui, .. } = args;
-        let Slider { value, min, max, skew, maybe_label, .. } = self;
+        let widget::UpdateArgs {
+            id,
+            state,
+            rect,
+            style,
+            ui,
+            ..
+        } = args;
+        let Slider {
+            value,
+            min,
+            max,
+            skew,
+            maybe_label,
+            ..
+        } = self;
 
         let is_horizontal = rect.w() > rect.h();
         let border = style.border(ui.theme());
@@ -168,14 +179,16 @@ impl<'a, T> Widget for Slider<'a, T>
         };
 
         // The **Rectangle** for the border.
-        let interaction_color = |ui: &::ui::UiCell, color: Color|
-            ui.widget_input(id).mouse()
+        let interaction_color = |ui: &::ui::UiCell, color: Color| {
+            ui.widget_input(id)
+                .mouse()
                 .map(|mouse| if mouse.buttons.left().is_down() {
                     color.clicked()
                 } else {
                     color.highlighted()
                 })
-                .unwrap_or(color);
+                .unwrap_or(color)
+        };
 
         let border_color = interaction_color(ui, style.border_color(ui.theme()));
         widget::Rectangle::fill(rect.dim())
@@ -217,8 +230,11 @@ impl<'a, T> Widget for Slider<'a, T>
             //const TEXT_PADDING: f64 = 10.0;
             widget::Text::new(label)
                 .and_then(font_id, widget::Text::font_id)
-                .and(|text| if is_horizontal { text.mid_left_of(id) }
-                            else { text.mid_bottom_of(id) })
+                .and(|text| if is_horizontal {
+                    text.mid_left_of(id)
+                } else {
+                    text.mid_bottom_of(id)
+                })
                 .graphics_for(id)
                 .color(label_color)
                 .font_size(font_size)
@@ -226,9 +242,12 @@ impl<'a, T> Widget for Slider<'a, T>
         }
 
         // If the value has just changed, return the new value.
-        if value != new_value { Some(new_value) } else { None }
+        if value != new_value {
+            Some(new_value)
+        } else {
+            None
+        }
     }
-
 }
 
 

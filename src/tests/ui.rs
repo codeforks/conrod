@@ -1,13 +1,4 @@
-use {
-    Color,
-    Labelable,
-    Positionable,
-    Colorable,
-    Sizeable,
-    Widget,
-    Ui,
-    UiBuilder
-};
+use {Color, Labelable, Positionable, Colorable, Sizeable, Widget, Ui, UiBuilder};
 use event::{self, Input};
 use input::{self, Button, Key, Motion, MouseButton};
 use input::keyboard::ModifierKey;
@@ -52,10 +43,14 @@ fn test_handling_basic_input_event(ui: &mut Ui, event: Input) {
 
 fn assert_event_was_pushed(ui: &Ui, event: event::Event) {
     let found = ui.global_input().events().find(|evt| **evt == event);
-    assert!(found.is_some(),
-            format!("expected to find event: {:?} in: \nevents: {:?}",
-                    event,
-                    ui.global_input().events().collect::<Vec<&event::Event>>()));
+    assert!(
+        found.is_some(),
+        format!(
+            "expected to find event: {:?} in: \nevents: {:?}",
+            event,
+            ui.global_input().events().collect::<Vec<&event::Event>>()
+        )
+    );
 }
 
 fn to_window_coordinates(xy: Point, ui: &Ui) -> Point {
@@ -121,12 +116,14 @@ fn high_level_scroll_event_should_be_created_from_a_raw_mouse_scroll() {
     let mut ui = windowless_ui();
     ui.handle_event(Input::Motion(Motion::Scroll { x: 10.0, y: 33.0 }));
 
-    let expected_scroll = event::Scroll{
+    let expected_scroll = event::Scroll {
         x: 10.0,
         y: 33.0,
-        modifiers: ModifierKey::default()
+        modifiers: ModifierKey::default(),
     };
-    let event = ui.global_input().events().next().expect("expected a scroll event");
+    let event = ui.global_input().events().next().expect(
+        "expected a scroll event",
+    );
     if let event::Event::Ui(event::Ui::Scroll(_, scroll)) = *event {
         assert_eq!(expected_scroll, scroll);
     }

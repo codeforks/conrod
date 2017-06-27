@@ -2,7 +2,7 @@
 
 use {Color, Dimensions, Scalar};
 use super::oval::Oval;
-use super::Style as Style;
+use super::Style;
 use widget;
 
 /// A tiny wrapper around the **Oval** widget type.
@@ -17,7 +17,6 @@ fn rad_to_dim(radius: Scalar) -> Dimensions {
 
 
 impl Circle {
-
     /// Build a circular **Oval** with the given dimensions and style.
     pub fn styled(radius: Scalar, style: Style) -> Oval {
         Oval::styled(rad_to_dim(radius), style)
@@ -42,6 +41,4 @@ impl Circle {
     pub fn outline_styled(radius: Scalar, line_style: widget::line::Style) -> Oval {
         Oval::outline_styled(rad_to_dim(radius), line_style)
     }
-
 }
-

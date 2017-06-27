@@ -41,10 +41,9 @@ pub struct State {
 }
 
 impl State {
-
     /// Returns a fresh new input state
     pub fn new() -> State {
-        State{
+        State {
             touch: fnv::FnvHashMap::default(),
             mouse: Mouse::new(),
             widget_capturing_keyboard: None,
@@ -60,7 +59,6 @@ impl State {
         self.mouse.buttons = self.mouse.buttons.relative_to(xy);
         self
     }
-
 }
 
 /// Touch specific state.
@@ -134,7 +132,7 @@ pub mod mouse {
     /// If the mouse button is down, it stores the position of the mouse when the button was pressed
     #[derive(Copy, Clone, Debug, PartialEq)]
     pub struct ButtonMap {
-        buttons: [ButtonPosition; NUM_BUTTONS]
+        buttons: [ButtonPosition; NUM_BUTTONS],
     }
 
     /// An iterator yielding all pressed buttons.
@@ -154,12 +152,12 @@ pub mod mouse {
     }
 
     impl ButtonPosition {
-
         /// If the mouse button is down, return a new one with position relative to the given `xy`.
         pub fn relative_to(self, xy: Point) -> Self {
             match self {
-                ButtonPosition::Down(pos, widget) =>
-                    ButtonPosition::Down([pos[0] - xy[0], pos[1] - xy[1]], widget),
+                ButtonPosition::Down(pos, widget) => {
+                    ButtonPosition::Down([pos[0] - xy[0], pos[1] - xy[1]], widget)
+                }
                 button_pos => button_pos,
             }
         }
@@ -196,24 +194,24 @@ pub mod mouse {
                 _ => None,
             }
         }
-
     }
 
     impl ButtonMap {
-
         /// Returns a new button map with all states set to `None`
         pub fn new() -> Self {
-            ButtonMap{
-                buttons: [ButtonPosition::Up; NUM_BUTTONS]
-            }
+            ButtonMap { buttons: [ButtonPosition::Up; NUM_BUTTONS] }
         }
 
         /// Returns a copy of the ButtonMap relative to the given `Point`
         pub fn relative_to(self, xy: Point) -> Self {
-            self.buttons.iter().enumerate().fold(ButtonMap::new(), |mut map, (idx, button_pos)| {
-                map.buttons[idx] = button_pos.relative_to(xy);
-                map
-            })
+            self.buttons.iter().enumerate().fold(
+                ButtonMap::new(),
+                |mut map,
+                 (idx, button_pos)| {
+                    map.buttons[idx] = button_pos.relative_to(xy);
+                    map
+                },
+            )
         }
 
         /// The state of the left mouse button.
@@ -246,7 +244,6 @@ pub mod mouse {
         pub fn pressed(&self) -> PressedButtons {
             PressedButtons { buttons: self.buttons.iter().enumerate() }
         }
-
     }
 
     /// Converts a `Button` to its respective index within the `ButtonMap`.
@@ -307,16 +304,26 @@ fn button_down_should_store_the_point() {
     let xy = [2.0, 5.0];
     map.press(mouse::Button::Left, xy, None);
 
-    assert_eq!(mouse::ButtonPosition::Down(xy, None), map[mouse::Button::Left]);
+    assert_eq!(
+        mouse::ButtonPosition::Down(xy, None),
+        map[mouse::Button::Left]
+    );
 }
 
 #[test]
 fn input_state_should_be_made_relative_to_a_given_point() {
     let mut state = State::new();
     state.mouse.xy = [50.0, -10.0];
-    state.mouse.buttons.press(mouse::Button::Middle, [-20.0, -10.0], None);
+    state.mouse.buttons.press(
+        mouse::Button::Middle,
+        [-20.0, -10.0],
+        None,
+    );
 
     let relative_state = state.relative_to([20.0, 20.0]);
     assert_eq!([30.0, -30.0], relative_state.mouse.xy);
-    assert_eq!(Some([-40.0, -30.0]), relative_state.mouse.buttons[mouse::Button::Middle].xy_if_down());
+    assert_eq!(
+        Some([-40.0, -30.0]),
+        relative_state.mouse.buttons[mouse::Button::Middle].xy_if_down()
+    );
 }

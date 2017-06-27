@@ -2,15 +2,18 @@
 //!
 //! Note that the `glium` crate is re-exported via the `conrod::backend::glium` module.
 
-#[cfg(all(feature="winit", feature="glium"))] #[macro_use] extern crate conrod;
+#[cfg(all(feature = "winit", feature = "glium"))]
+#[macro_use]
+extern crate conrod;
 
-#[cfg(all(feature="winit", feature="glium"))] mod support;
+#[cfg(all(feature = "winit", feature = "glium"))]
+mod support;
 
 fn main() {
     feature::main();
 }
 
-#[cfg(all(feature="winit", feature="glium"))]
+#[cfg(all(feature = "winit", feature = "glium"))]
 mod feature {
     extern crate find_folder;
     extern crate image;
@@ -36,23 +39,32 @@ mod feature {
             .unwrap();
 
         // Construct our `Ui`.
-        let mut ui = conrod::UiBuilder::new([WIN_W as f64, WIN_H as f64]).theme(support::theme()).build();
+        let mut ui = conrod::UiBuilder::new([WIN_W as f64, WIN_H as f64])
+            .theme(support::theme())
+            .build();
 
         // The `widget::Id` of each widget instantiated in `support::gui`.
         let ids = support::Ids::new(ui.widget_id_generator());
 
         // Add a `Font` to the `Ui`'s `font::Map` from file.
-        let assets = find_folder::Search::KidsThenParents(3, 5).for_folder("assets").unwrap();
+        let assets = find_folder::Search::KidsThenParents(3, 5)
+            .for_folder("assets")
+            .unwrap();
         let font_path = assets.join("fonts/NotoSans/NotoSans-Regular.ttf");
         ui.fonts.insert_from_file(font_path).unwrap();
 
         // Load the Rust logo from our assets folder to use as an example image.
         fn load_rust_logo(display: &glium::Display) -> glium::texture::Texture2d {
-            let assets = find_folder::Search::ParentsThenKids(3, 3).for_folder("assets").unwrap();
+            let assets = find_folder::Search::ParentsThenKids(3, 3)
+                .for_folder("assets")
+                .unwrap();
             let path = assets.join("images/rust.png");
             let rgba_image = image::open(&std::path::Path::new(&path)).unwrap().to_rgba();
             let image_dimensions = rgba_image.dimensions();
-            let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(rgba_image.into_raw(), image_dimensions);
+            let raw_image = glium::texture::RawImage2d::from_raw_rgba_reversed(
+                rgba_image.into_raw(),
+                image_dimensions,
+            );
             let texture = glium::texture::Texture2d::new(display, raw_image).unwrap();
             texture
         }
@@ -97,7 +109,7 @@ mod feature {
                     glium::glutin::Event::KeyboardInput(_, _, Some(glium::glutin::VirtualKeyCode::Escape)) |
                     glium::glutin::Event::Closed =>
                         break 'main,
-                    _ => {},
+                    _ => {}
                 }
             }
 
@@ -117,10 +129,12 @@ mod feature {
 
 }
 
-#[cfg(not(all(feature="winit", feature="glium")))]
+#[cfg(not(all(feature = "winit", feature = "glium")))]
 mod feature {
     pub fn main() {
-        println!("This example requires the `winit` and `glium` features. \
-                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`");
+        println!(
+            "This example requires the `winit` and `glium` features. \
+                 Try running `cargo run --release --features=\"winit glium\" --example <example_name>`"
+        );
     }
 }

@@ -95,7 +95,11 @@ pub enum ImageColor {
 }
 
 #[derive(Copy, Clone)]
-enum Interaction { Idle, Hover, Press }
+enum Interaction {
+    Idle,
+    Hover,
+    Press,
+}
 
 /// The `Event` type yielded by the `Button` widget.
 ///
@@ -108,7 +112,9 @@ pub struct TimesClicked(pub u16);
 
 impl TimesClicked {
     /// `true` if the `Button` was clicked one or more times.
-    pub fn was_clicked(self) -> bool { self.0 > 0 }
+    pub fn was_clicked(self) -> bool {
+        self.0 > 0
+    }
 }
 
 impl Iterator for TimesClicked {
@@ -125,7 +131,6 @@ impl Iterator for TimesClicked {
 
 
 impl<'a> Button<'a, Image> {
-
     /// Begin building a button displaying the given `Image` on top.
     pub fn image(image_id: image::Id) -> Self {
         let image = Image {
@@ -172,18 +177,16 @@ impl<'a> Button<'a, Image> {
         self.show.press_image_id = Some(id);
         self
     }
-
 }
 
 impl<'a> Button<'a, Flat> {
-
     /// Begin building a flat-colored `Button` widget.
     pub fn new() -> Self {
         Self::new_internal(Flat)
     }
 
     /// Override the default button style
-    pub fn with_style(mut self, s: Style) -> Self{
+    pub fn with_style(mut self, s: Style) -> Self {
         self.style = s;
         self
     }
@@ -191,7 +194,6 @@ impl<'a> Button<'a, Flat> {
 
 
 impl<'a, S> Button<'a, S> {
-
     /// Create a button context to be built upon.
     fn new_internal(show: S) -> Self {
         Button {
@@ -270,7 +272,14 @@ impl<'a> Widget for Button<'a, Flat> {
 
     /// Update the state of the Button.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, style, rect, ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            style,
+            rect,
+            ui,
+            ..
+        } = args;
         let Button { maybe_label, .. } = self;
 
         let (interaction, times_triggered) = interaction_and_times_triggered(id, ui);
@@ -285,7 +294,6 @@ impl<'a> Widget for Button<'a, Flat> {
 
         TimesClicked(times_triggered)
     }
-
 }
 
 impl<'a> Widget for Button<'a, Image> {
@@ -311,13 +319,26 @@ impl<'a> Widget for Button<'a, Image> {
 
     /// Update the state of the Button.
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
-        let widget::UpdateArgs { id, state, style, rect, ui, .. } = args;
+        let widget::UpdateArgs {
+            id,
+            state,
+            style,
+            rect,
+            ui,
+            ..
+        } = args;
         let Button { show, maybe_label, .. } = self;
 
         let (interaction, times_triggered) = interaction_and_times_triggered(id, ui);
 
         // Instantiate the image.
-        let Image { image_id, press_image_id, hover_image_id, src_rect, color } = show;
+        let Image {
+            image_id,
+            press_image_id,
+            hover_image_id,
+            src_rect,
+            color,
+        } = show;
 
         // Determine the correct image to display.
         let image_id = match interaction {
@@ -335,14 +356,16 @@ impl<'a> Widget for Button<'a, Image> {
         image.src_rect = src_rect;
         image.style.maybe_color = match color {
             ImageColor::Normal(color) => Some(Some(color)),
-            ImageColor::WithFeedback(color) =>
-                ui.widget_input(id).mouse()
+            ImageColor::WithFeedback(color) => {
+                ui.widget_input(id)
+                    .mouse()
                     .map(|mouse| if mouse.buttons.left().is_down() {
                         Some(color.clicked())
                     } else {
                         Some(color.highlighted())
                     })
-                    .or(Some(Some(color))),
+                    .or(Some(Some(color)))
+            }
             ImageColor::None => None,
         };
         image.set(state.image, ui);
@@ -353,7 +376,6 @@ impl<'a> Widget for Button<'a, Image> {
 
         TimesClicked(times_triggered)
     }
-
 }
 
 
@@ -367,20 +389,26 @@ fn color_from_interaction(color: Color, interaction: Interaction) -> Color {
 
 fn interaction_and_times_triggered(button_id: widget::Id, ui: &UiCell) -> (Interaction, u16) {
     let input = ui.widget_input(button_id);
-    let interaction = input.mouse().map_or(Interaction::Idle, |mouse| {
-        if mouse.buttons.left().is_down() {
+    let interaction = input.mouse().map_or(
+        Interaction::Idle,
+        |mouse| if mouse.buttons.left().is_down() {
             Interaction::Press
         } else {
             Interaction::Hover
-        }
-    });
+        },
+    );
     let times_triggered = (input.clicks().left().count() + input.taps().count()) as u16;
     (interaction, times_triggered)
 }
 
-fn bordered_rectangle(button_id: widget::Id, rectangle_id: widget::Id,
-                      rect: Rect, color: Color, style: &Style, ui: &mut UiCell)
-{
+fn bordered_rectangle(
+    button_id: widget::Id,
+    rectangle_id: widget::Id,
+    rect: Rect,
+    color: Color,
+    style: &Style,
+    ui: &mut UiCell,
+) {
     // BorderedRectangle widget.
     let dim = rect.dim();
     let border = style.border(&ui.theme);
@@ -394,9 +422,7 @@ fn bordered_rectangle(button_id: widget::Id, rectangle_id: widget::Id,
         .set(rectangle_id, ui);
 }
 
-fn label(button_id: widget::Id, label_id: widget::Id,
-         label: &str, style: &Style, ui: &mut UiCell)
-{
+fn label(button_id: widget::Id, label_id: widget::Id, label: &str, style: &Style, ui: &mut UiCell) {
     let color = style.label_color(&ui.theme);
     let font_size = style.label_font_size(&ui.theme);
     let x = style.label_x(&ui.theme);

@@ -1,17 +1,22 @@
-//! A function for converting a `winit::Event` to a `conrod::event::Input`.
+//! A function for converting a `Event` to a `conrod::event::Input`.
 
 extern crate winit;
+
+
+/// WinitEvent { WindowEvent, DeviceEvent, Awakened }
+/// WindowEvent { ... }
+///
+use self::winit::{WindowEvent, Event};
 
 use Scalar;
 use event::Input;
 use input;
-#[cfg(feature = "glium")]
-use glium;
 
-// use self::winit::WindowEvent as Event;
+#[cfg(feature = "glium")] use glium;
+
 
 /// Types that have access to a `winit::Window` and can provide the necessary dimensions and hidpi
-/// factor for converting `winit::Event`s to `conrod::event::Input`.
+/// factor for converting `Event`s to `conrod::event::Input`.
 ///
 /// This allows users to pass either `glium::Display`, `glium::glutin::Window` or `winit::Window`
 /// to the `conrod::backend::winit::convert` function defined below.
@@ -30,7 +35,7 @@ impl WinitWindow for winit::Window {
         winit::Window::hidpi_factor(self)
     }
 }
-
+    
 #[cfg(feature = "glium")]
 impl WinitWindow for glium::glutin::Window {
     fn get_inner_size(&self) -> Option<(u32, u32)> {
@@ -55,8 +60,8 @@ impl WinitWindow for glium::Display {
 }
 
 
-/// A function for converting a `winit::Event` to a `conrod::event::Input`.
-pub fn convert<W>(e: winit::Event, window: &W) -> Option<Input>
+/// A function for converting a `Event` to a `conrod::event::Input`.
+pub fn convert<W>(e: Event, window: &W) -> Option<Input>
 where
     W: WinitWindow,
 {
@@ -77,15 +82,19 @@ where
     let tx = |x: Scalar| (x / dpi_factor) - win_w / 2.0;
     let ty = |y: Scalar| -((y / dpi_factor) - win_h / 2.0);
 
-    match e: winit::WindowEvent {
+    match e {
 
-        /// Window Touched
-        winit::WindowEvent::Touch(winit::Touch {
-                                      phase,
-                                      location: (x, y),
-                                      id,
-                                      device_id,
-                                  }) => {
+        ///////////////////////////////////////////////////////////////
+        // Window Touched
+        Event::WindowEvent {
+            event: WindowEvent::Touch(winit::Touch {
+                location: (x, y),
+                phase,
+                id,
+                ..
+            }),
+            ..
+        } => {
             let phase = match phase {
                 winit::TouchPhase::Started => input::touch::Phase::Start,
                 winit::TouchPhase::Moved => input::touch::Phase::Move,
@@ -102,15 +111,23 @@ where
             Some(Input::Touch(touch).into())
         }
 
-        /// Window Resized
-        winit::WindowEvent::Resized(w, h) => {
+        ///////////////////////////////////////////////////////////////
+        // Window Resized
+        Event::WindowEvent {
+            event: WindowEvent::Resized(w, h),
+            ..
+        } => {
             let w = (w as Scalar / dpi_factor) as u32;
             let h = (h as Scalar / dpi_factor) as u32;
             Some(Input::Resize(w, h).into())
         }
 
-        /// Window Received Character
-        winit::WindowEvent::ReceivedCharacter(ch) => {
+        ///////////////////////////////////////////////////////////////
+        // Window Received Character
+        Event::WindowEvent {
+            event: WindowEvent::ReceivedCharacter(ch),
+            ..
+        } => {
             let string = match ch {
                 // Ignore control characters and return ascii for Text event (like sdl2).
                 '\u{7f}' | // Delete
@@ -122,12 +139,17 @@ where
             Some(Input::Text(string).into())
         }
 
-        /// Window Focused
-        winit::WindowEvent::Focused(focused) => Some(Input::Focus(focused).into()),
+        ///////////////////////////////////////////////////////////////
+        // Window Focused
+        Event::WindowEvent {
+            event: WindowEvent::Focused(focused),
+            ..
+        } => Some(Input::Focus(focused).into()),
 
-        /// Key pressed
-        winit::Event::WindowEvent {
-            event: winit::WindowEvent::KeyboardInput {
+        ///////////////////////////////////////////////////////////////
+        // Key pressed
+        Event::WindowEvent {
+            event: WindowEvent::KeyboardInput {
                 input: winit::KeyboardInput {
                     state: winit::ElementState::Pressed,
                     virtual_keycode: Some(key),
@@ -138,11 +160,12 @@ where
             ..
         } => Some(Input::Press(input::Button::Keyboard(map_key(key))).into()),
 
+        ///////////////////////////////////////////////////////////////
         /// Key released
-        winit::Event::WindowEvent {
-            event: winit::WindowEvent::KeyboardInput {
+        Event::WindowEvent {
+            event: WindowEvent::KeyboardInput {
                 input: winit::KeyboardInput {
-                    state: winit::ElementState::released,
+                    state: winit::ElementState::Released,
                     virtual_keycode: Some(key),
                     ..
                 },
@@ -150,45 +173,86 @@ where
             },
             ..
         } => Some(Input::Release(input::Button::Keyboard(map_key(key))).into()),
-        // winit::Event::WindowEvent::KeyboardInput(winit::ElementState::Released, _, Some(key)) =>
-        
 
+
+        ///////////////////////////////////////////////////////////////
         // Mouse Moved
-        winit::WindowEvent::MouseMoved(x, y) => {
+        Event::WindowEvent {
+            event: WindowEvent::MouseMoved {
+                position: (x,y),
+                ..
+            },
+            ..
+        } => {
             let x = tx(x as Scalar);
             let y = ty(y as Scalar);
             let motion = input::Motion::MouseCursor { x: x, y: y };
             Some(Input::Motion(motion).into())
         }
 
+        ///////////////////////////////////////////////////////////////
         // Mouse Wheel scrolled
-        winit::WindowEvent::MouseWheel(winit::MouseScrollDelta::PixelDelta(x, y), _) => {
+        Event::WindowEvent {
+            event: WindowEvent::MouseWheel {
+                delta: winit::MouseScrollDelta::PixelDelta(x,y),
+                ..
+            },
+            ..
+        } => {
             let x = x as Scalar / dpi_factor;
             let y = -y as Scalar / dpi_factor;
             let motion = input::Motion::Scroll { x: x, y: y };
             Some(Input::Motion(motion).into())
         }
 
-        winit::WindowEvent::MouseWheel(winit::MouseScrollDelta::LineDelta(x, y), _) => {
-            // This should be configurable (we should provide a LineDelta event to allow for this).
+        ///////////////////////////////////////////////////////////////
+        // Mouse wheel line delta
+        Event::WindowEvent {
+            event: WindowEvent::MouseWheel {
+                delta: winit::MouseScrollDelta::LineDelta(x,y),
+                ..
+            },
+            ..
+        } => {
+            // Todo: This should be configurable:
+            // We can provide a LineDelta event to allow for this.
             const ARBITRARY_POINTS_PER_LINE_FACTOR: Scalar = 10.0;
             let x = ARBITRARY_POINTS_PER_LINE_FACTOR * x as Scalar;
             let y = ARBITRARY_POINTS_PER_LINE_FACTOR * -y as Scalar;
             Some(Input::Motion(input::Motion::Scroll { x: x, y: y }).into())
         }
 
-        winit::WindowEvent::MouseInput(winit::ElementState::Pressed, button) => Some(
+        ///////////////////////////////////////////////////////////////
+        // Mouse click pressed
+        Event::WindowEvent {
+            event: WindowEvent::MouseInput {
+                state: winit::ElementState::Pressed,
+                button,
+                ..
+            },
+            ..
+        } => Some(
             Input::Press(
                 input::Button::Mouse(map_mouse(button)),
             ).into(),
         ),
 
-        winit::WindowEvent::MouseInput(winit::ElementState::Released, button) => Some(
+        ///////////////////////////////////////////////////////////////
+        //Mouse click released
+        Event::WindowEvent {
+            event: WindowEvent::MouseInput {
+                state: winit::ElementState::Released,
+                button,
+                ..
+            },
+            ..
+        } => Some(
             Input::Release(
                 input::Button::Mouse(map_mouse(button)),
             ).into(),
         ),
 
+        ///////////////////////////////////////////////////////////////
         _ => None,
     }
 }
